@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Chatelier's Principle Simulator</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for graphing -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom styles for a cleaner look */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .control-panel label {
+            font-weight: 500;
+        }
+        .control-panel input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #d1d5db; /* gray-300 */
+            border-radius: 9999px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+        .control-panel input[type="range"]:hover {
+            opacity: 1;
+        }
+        .control-panel input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #3b82f6; /* blue-500 */
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        .control-panel input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #3b82f6; /* blue-500 */
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        /* Style for disabled elements */
+        button:disabled, input:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        input[type="range"]:disabled::-webkit-slider-thumb {
+            background: #9ca3af; /* gray-400 */
+        }
+        input[type="range"]:disabled::-moz-range-thumb {
+            background: #9ca3af; /* gray-400 */
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900">Le Chatelier's Principle Simulator</h1>
+            <p id="equation-display" class="text-lg text-gray-600 mt-2">An interactive simulation of the equilibrium: <span class="font-semibold text-blue-600">2A</span> ⇌ <span class="font-semibold text-red-600">B</span></p>
+        </header>
+
+        <div id="main-grid" class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+
+            <!-- Left Column: Simulation and Controls -->
+            <div id="left-panel" class="bg-white p-6 rounded-xl shadow-lg flex flex-col lg:col-span-2">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold">Simulation & Controls</h2>
+                    <button id="toggle-panel-btn" class="p-1 rounded-full hover:bg-gray-200 hidden">
+                        <svg id="collapse-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="flex items-center mb-4">
+                    <input id="toggleSimVisual" type="checkbox" checked class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                    <label for="toggleSimVisual" class="ml-2 block text-sm text-gray-900">Show Visual</label>
+                </div>
+
+                <!-- Particle Key -->
+                <div class="flex justify-center space-x-6 mb-2 text-sm">
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded-full bg-blue-500 mr-2"></div>
+                        <span>Molecule A</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-red-500 mr-2"></div>
+                        <span>Molecule B</span>
+                    </div>
+                </div>
+                
+                <!-- Simulation Container -->
+                <div id="container-wrapper" class="relative w-full h-48 md:h-64 bg-gray-200 rounded-lg border-4 border-gray-300 transition-all duration-300 ease-in-out mb-4">
+                    <canvas id="simulationCanvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+                </div>
+
+                <!-- Controls Panel -->
+                <div class="control-panel space-y-5">
+                    <div id="initial-controls">
+                        <h3 class="text-xl font-bold mb-3">Initial Conditions</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="coeffA" class="text-sm">Coeff. A:</label>
+                                <input type="number" id="coeffA" min="1" max="3" value="2" class="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            </div>
+                            <div>
+                                <label for="coeffB" class="text-sm">Coeff. B:</label>
+                                <input type="number" id="coeffB" min="1" max="3" value="1" class="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            </div>
+                            <div>
+                                <label for="molesA" class="flex justify-between text-sm">Moles of A: <span id="molesAValue" class="font-semibold">5</span></label>
+                                <input type="range" id="molesA" min="0" max="20" value="5" step="0.1" class="mt-1">
+                            </div>
+                            <div>
+                                <label for="molesB" class="flex justify-between text-sm">Moles of B: <span id="molesBValue" class="font-semibold">0</span></label>
+                                <input type="range" id="molesB" min="0" max="10" value="0" step="0.1" class="mt-1">
+                            </div>
+                            <div>
+                                <label for="volume" class="flex justify-between text-sm">Volume (dm³): <span id="volumeValue" class="font-semibold">5</span></label>
+                                <input type="range" id="volume" min="1" max="10" value="5" step="0.1" class="mt-1">
+                            </div>
+                            <div>
+                                <label for="temperature" class="flex justify-between text-sm">Temp (K): <span id="temperatureValue" class="font-semibold">298</span></label>
+                                <input type="range" id="temperature" min="200" max="400" value="298" step="1" class="mt-1">
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-around mt-4">
+                            <label><input type="radio" name="reactionType" value="exo" checked> Exothermic</label>
+                            <label><input type="radio" name="reactionType" value="endo"> Endothermic</label>
+                        </div>
+                    </div>
+                     <div id="stress-controls">
+                        <h3 class="text-xl font-bold mb-3 pt-4 border-t">Apply Stress</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button id="addA" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">+1 Mole A</button>
+                            <button id="removeA" class="bg-blue-200 hover:bg-blue-300 text-blue-800 font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">-1 Mole A</button>
+                            <button id="addB" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">+1 Mole B</button>
+                            <button id="removeB" class="bg-red-200 hover:bg-red-300 text-red-800 font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">-1 Mole B</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label for="volumeStress" class="flex justify-between text-sm">Volume (dm³): <span id="volumeStressValue" class="font-semibold">5</span></label>
+                                <input type="range" id="volumeStress" min="1" max="10" value="5" step="0.1" class="mt-1">
+                            </div>
+                            <div>
+                                <label for="temperatureStress" class="flex justify-between text-sm">Temp (K): <span id="temperatureStressValue" class="font-semibold">298</span></label>
+                                <input type="range" id="temperatureStress" min="200" max="400" value="298" step="1" class="mt-1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3 pt-4 border-t">
+                         <button id="startBtn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105">Start</button>
+                         <button id="stopBtn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105">Stop</button>
+                         <button id="resetBtn" class="w-full bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105">Reset</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Graphs -->
+            <div id="right-panel" class="space-y-8 lg:col-span-3">
+                 <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold">Data Plots</h2>
+                        <button id="expand-btn" class="p-1 rounded-full hover:bg-gray-200 hidden">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Real-time Data Display -->
+                    <div id="real-time-data-container">
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 text-center mb-4">
+                            <div class="bg-blue-50 p-2 rounded-lg border border-blue-200">
+                                <p class="text-xs text-blue-800 font-semibold">[A] (mol/dm³)</p>
+                                <p id="concADisplay" class="text-lg font-bold text-blue-900">0.00</p>
+                            </div>
+                            <div class="bg-red-50 p-2 rounded-lg border border-red-200">
+                                <p class="text-xs text-red-800 font-semibold">[B] (mol/dm³)</p>
+                                <p id="concBDisplay" class="text-lg font-bold text-red-900">0.00</p>
+                            </div>
+                            <div class="bg-blue-50 p-2 rounded-lg border border-blue-200">
+                                <p class="text-xs text-blue-800 font-semibold">Forward Rate</p>
+                                <p id="fwdRateDisplay" class="text-lg font-bold text-blue-900">0.00</p>
+                            </div>
+                            <div class="bg-red-50 p-2 rounded-lg border border-red-200">
+                                <p class="text-xs text-red-800 font-semibold">Backward Rate</p>
+                                <p id="revRateDisplay" class="text-lg font-bold text-red-900">0.00</p>
+                            </div>
+                            <div class="bg-purple-50 p-2 rounded-lg border border-purple-200 col-span-1 lg:col-span-2">
+                                <p class="text-xs text-purple-800 font-semibold">Equilibrium Constant (Kc)</p>
+                                <p id="kcDisplay" class="text-lg font-bold text-purple-900">0.00</p>
+                            </div>
+                            <div class="bg-yellow-50 p-2 rounded-lg border border-yellow-200 col-span-1 lg:col-span-2">
+                                <p class="text-xs text-yellow-800 font-semibold">Reaction Quotient (Qc)</p>
+                                <p id="qcDisplay" class="text-lg font-bold text-yellow-900">0.00</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Status -->
+                    <div id="status-display" class="text-center text-xl font-semibold p-3 rounded-lg mb-6 transition-colors duration-300">
+                        Set initial conditions and press start.
+                    </div>
+
+                    <!-- Graph Controls -->
+                    <div class="mb-6 flex items-center space-x-4 flex-wrap">
+                         <div class="flex items-center mt-2">
+                            <input id="toggleDataDisplay" type="checkbox" checked class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            <label for="toggleDataDisplay" class="ml-2 block text-sm text-gray-900">Show Real-time Data</label>
+                        </div>
+                        <div class="flex items-center mt-2">
+                            <input id="toggleConcGraph" type="checkbox" checked class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            <label for="toggleConcGraph" class="ml-2 block text-sm text-gray-900">Show Concentration Graph</label>
+                        </div>
+                        <div class="flex items-center mt-2">
+                            <input id="toggleRateGraph" type="checkbox" checked class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            <label for="toggleRateGraph" class="ml-2 block text-sm text-gray-900">Show Rate Graph</label>
+                        </div>
+                    </div>
+
+                    <div id="concGraphContainer">
+                        <h3 class="text-lg font-semibold mb-2">Concentration vs. Time</h3>
+                        <canvas id="concentrationChart"></canvas>
+                    </div>
+                    <div id="rateGraphContainer" class="mt-6">
+                        <h3 class="text-lg font-semibold mb-2">Reaction Rate vs. Time</h3>
+                        <canvas id="rateChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM ELEMENT REFERENCES ---
+            const equationDisplay = document.getElementById('equation-display');
+            const mainGrid = document.getElementById('main-grid');
+            const leftPanel = document.getElementById('left-panel');
+            const rightPanel = document.getElementById('right-panel');
+            const togglePanelBtn = document.getElementById('toggle-panel-btn');
+            const expandBtn = document.getElementById('expand-btn');
+
+            const canvas = document.getElementById('simulationCanvas');
+            const ctx = canvas.getContext('2d');
+            const containerWrapper = document.getElementById('container-wrapper');
+            
+            // Initial Controls
+            const initialControls = document.getElementById('initial-controls');
+            const coeffAInput = document.getElementById('coeffA');
+            const coeffBInput = document.getElementById('coeffB');
+            const molesASlider = document.getElementById('molesA');
+            const molesBSlider = document.getElementById('molesB');
+            const volumeSlider = document.getElementById('volume');
+            const temperatureSlider = document.getElementById('temperature');
+            const molesAValue = document.getElementById('molesAValue');
+            const molesBValue = document.getElementById('molesBValue');
+            const volumeValue = document.getElementById('volumeValue');
+            const temperatureValue = document.getElementById('temperatureValue');
+            const reactionTypeRadios = document.querySelectorAll('input[name="reactionType"]');
+
+            // Stress Controls
+            const stressControls = document.getElementById('stress-controls');
+            const addABtn = document.getElementById('addA');
+            const removeABtn = document.getElementById('removeA');
+            const addBBtn = document.getElementById('addB');
+            const removeBBtn = document.getElementById('removeB');
+            const volumeStressSlider = document.getElementById('volumeStress');
+            const temperatureStressSlider = document.getElementById('temperatureStress');
+            const volumeStressValue = document.getElementById('volumeStressValue');
+            const temperatureStressValue = document.getElementById('temperatureStressValue');
+            
+            // Data Displays
+            const statusDisplay = document.getElementById('status-display');
+            const concADisplay = document.getElementById('concADisplay');
+            const concBDisplay = document.getElementById('concBDisplay');
+            const fwdRateDisplay = document.getElementById('fwdRateDisplay');
+            const revRateDisplay = document.getElementById('revRateDisplay');
+            const kcDisplay = document.getElementById('kcDisplay');
+            const qcDisplay = document.getElementById('qcDisplay');
+            
+            // Main Buttons
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const resetBtn = document.getElementById('resetBtn');
+
+            // Display Toggles
+            const toggleSimVisual = document.getElementById('toggleSimVisual');
+            const toggleConcGraph = document.getElementById('toggleConcGraph');
+            const toggleRateGraph = document.getElementById('toggleRateGraph');
+            const toggleDataDisplay = document.getElementById('toggleDataDisplay');
+            const concGraphContainer = document.getElementById('concGraphContainer');
+            const rateGraphContainer = document.getElementById('rateGraphContainer');
+            const realTimeDataContainer = document.getElementById('real-time-data-container');
+
+            // --- SIMULATION STATE & CONSTANTS ---
+            let state = {
+                molesA: 5, molesB: 0, volume: 5, time: 0, 
+                temperature: 298, reactionType: 'exo',
+                coeffA: 2, coeffB: 1
+            };
+            const T_base = 298; // Base temperature in Kelvin
+            const kf_base = 0.05; 
+            const kr_base = 0.1;
+            let Kc_base = kf_base / kr_base;
+            let kf, kr, Kc; // Dynamic rate constants
+            
+            const timeStep = 0.1; 
+            let simulationRunning = false;
+            let history = [];
+            const chartTimeWindow = 60; 
+            let currentWindowStart = 0;
+            
+            // --- CHART SETUP ---
+            const createChart = (ctx, label) => {
+                return new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: [], datasets: [ { label: 'A', data: [], borderColor: 'rgba(59, 130, 246, 1)', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 2, tension: 0.3, pointRadius: 0 }, { label: 'B', data: [], borderColor: 'rgba(239, 68, 68, 1)', backgroundColor: 'rgba(239, 68, 68, 0.1)', borderWidth: 2, tension: 0.3, pointRadius: 0 } ] },
+                    options: { animation: { duration: 0 }, scales: { x: { type: 'linear', title: { display: true, text: 'Time (s)' }, min: 0, max: chartTimeWindow }, y: { title: { display: true, text: label }, beginAtZero: true } }, interaction: { intersect: false, mode: 'index' } }
+                });
+            };
+            const concentrationChart = createChart(document.getElementById('concentrationChart').getContext('2d'), 'Concentration (mol/dm³)');
+            const rateChart = createChart(document.getElementById('rateChart').getContext('2d'), 'Rate');
+            rateChart.data.datasets[0].label = 'Forward Rate';
+            rateChart.data.datasets[1].label = 'Backward Rate';
+
+            // --- SIMULATION LOGIC ---
+            function updateEquationDisplay() {
+                equationDisplay.innerHTML = `An interactive simulation of the equilibrium: <span class="font-semibold text-blue-600">${state.coeffA}A</span> ⇌ <span class="font-semibold text-red-600">${state.coeffB}B</span>`;
+            }
+
+            function updateThermalProperties(tempSource) {
+                const newTemp = parseFloat(tempSource.value);
+                state.temperature = newTemp;
+                state.reactionType = document.querySelector('input[name="reactionType"]:checked').value;
+
+                if (tempSource.id === 'temperature') {
+                    temperatureValue.textContent = newTemp;
+                    temperatureStressSlider.value = newTemp;
+                    temperatureStressValue.textContent = newTemp;
+                } else { 
+                    temperatureStressValue.textContent = newTemp;
+                }
+
+                kf = kf_base * (state.temperature / T_base); 
+                
+                if (state.reactionType === 'exo') { 
+                    Kc = Kc_base * (T_base / state.temperature);
+                } else { 
+                    Kc = Kc_base * (state.temperature / T_base);
+                }
+                
+                kr = kf / Kc;
+                
+                kcDisplay.textContent = Kc.toFixed(3);
+            }
+
+            function updateSimulation() {
+                if (!simulationRunning) return;
+
+                if (state.time >= currentWindowStart + chartTimeWindow) {
+                    currentWindowStart += chartTimeWindow;
+                    const newMax = currentWindowStart + chartTimeWindow;
+                    concentrationChart.options.scales.x.max = newMax;
+                    rateChart.options.scales.x.max = newMax;
+                }
+
+                const concA = state.molesA / state.volume;
+                const concB = state.molesB / state.volume;
+                
+                const forwardRate = kf * Math.pow(concA, state.coeffA);
+                const backwardRate = kr * Math.pow(concB, state.coeffB);
+                
+                let Qc = 0;
+                if (concA > 0) {
+                    Qc = Math.pow(concB, state.coeffB) / Math.pow(concA, state.coeffA);
+                } else {
+                    Qc = Infinity;
+                }
+
+                const netChange = (forwardRate - backwardRate) * timeStep;
+                state.molesA -= state.coeffA * netChange;
+                state.molesB += state.coeffB * netChange;
+                state.molesA = Math.max(0, state.molesA);
+                state.molesB = Math.max(0, state.molesB);
+                state.time += timeStep;
+                
+                history.push({ x: state.time, yA: concA, yB: concB, yFwd: forwardRate, yBack: backwardRate });
+                
+                updateUI(concA, concB, forwardRate, backwardRate, Qc);
+                requestAnimationFrame(updateSimulation);
+            }
+
+            // --- UI & RENDERING ---
+            function updateUI(concA, concB, forwardRate, backwardRate, Qc) {
+                const rateDifference = Math.abs(forwardRate - backwardRate);
+                if (rateDifference < 0.0001 && simulationRunning) {
+                    statusDisplay.textContent = 'At Equilibrium';
+                    statusDisplay.className = 'text-center text-xl font-semibold p-3 rounded-lg mb-6 transition-colors duration-300 bg-green-100 text-green-800';
+                } else if (Qc < Kc) {
+                    statusDisplay.textContent = 'Shifting to the Right (→)';
+                    statusDisplay.className = 'text-center text-xl font-semibold p-3 rounded-lg mb-6 transition-colors duration-300 bg-blue-100 text-blue-800';
+                } else {
+                    statusDisplay.textContent = 'Shifting to the Left (←)';
+                    statusDisplay.className = 'text-center text-xl font-semibold p-3 rounded-lg mb-6 transition-colors duration-300 bg-red-100 text-red-800';
+                }
+
+                concADisplay.textContent = concA.toFixed(3);
+                concBDisplay.textContent = concB.toFixed(3);
+                fwdRateDisplay.textContent = forwardRate.toFixed(4);
+                revRateDisplay.textContent = backwardRate.toFixed(4);
+                qcDisplay.textContent = Qc === Infinity ? '∞' : Qc.toFixed(3);
+
+                concentrationChart.data.datasets[0].data = history.map(d => ({x: d.x, y: d.yA}));
+                concentrationChart.data.datasets[1].data = history.map(d => ({x: d.x, y: d.yB}));
+                concentrationChart.update('none');
+
+                rateChart.data.datasets[0].data = history.map(d => ({x: d.x, y: d.yFwd}));
+                rateChart.data.datasets[1].data = history.map(d => ({x: d.x, y: d.yBack}));
+                rateChart.update('none');
+
+                drawMolecules();
+            }
+
+            function drawMolecules() {
+                if (containerWrapper.style.display === 'none') return;
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width; canvas.height = rect.height;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const numA = Math.round(state.molesA * 10);
+                const numB = Math.round(state.molesB * 5);
+
+                ctx.fillStyle = 'rgba(59, 130, 246, 0.8)';
+                for (let i = 0; i < numA; i++) {
+                    ctx.beginPath();
+                    ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.8)';
+                for (let i = 0; i < numB; i++) {
+                    ctx.fillRect(Math.random() * (canvas.width - 10), Math.random() * (canvas.height - 10), 10, 10);
+                }
+            }
+            
+            function handlePanelToggle() {
+                leftPanel.classList.toggle('hidden');
+                expandBtn.classList.toggle('hidden');
+                mainGrid.classList.toggle('lg:grid-cols-5');
+                mainGrid.classList.toggle('lg:grid-cols-1');
+            }
+
+            // --- EVENT LISTENERS ---
+            function setupEventListeners() {
+                // Initial controls listeners
+                coeffAInput.addEventListener('change', () => { if (!simulationRunning) setInitialState(); });
+                coeffBInput.addEventListener('change', () => { if (!simulationRunning) setInitialState(); });
+                molesASlider.addEventListener('input', (e) => {
+                    molesAValue.textContent = parseFloat(e.target.value).toFixed(1);
+                    if (!simulationRunning) setInitialState();
+                });
+                molesBSlider.addEventListener('input', (e) => {
+                    molesBValue.textContent = parseFloat(e.target.value).toFixed(1);
+                    if (!simulationRunning) setInitialState();
+                });
+                volumeSlider.addEventListener('input', (e) => {
+                    const newVolume = parseFloat(e.target.value);
+                    volumeValue.textContent = newVolume.toFixed(1);
+                    volumeStressValue.textContent = newVolume.toFixed(1);
+                    volumeStressSlider.value = newVolume;
+                    if (!simulationRunning) setInitialState();
+                });
+                temperatureSlider.addEventListener('input', () => updateThermalProperties(temperatureSlider));
+                reactionTypeRadios.forEach(radio => radio.addEventListener('change', () => updateThermalProperties(temperatureSlider)));
+                
+                // Stress controls listeners
+                addABtn.addEventListener('click', () => { state.molesA = Math.min(20, state.molesA + 1); });
+                removeABtn.addEventListener('click', () => { state.molesA = Math.max(0, state.molesA - 1); });
+                addBBtn.addEventListener('click', () => { state.molesB = Math.min(10, state.molesB + 1); });
+                removeBBtn.addEventListener('click', () => { state.molesB = Math.max(0, state.molesB - 1); });
+                volumeStressSlider.addEventListener('input', (e) => {
+                    const newVolume = parseFloat(e.target.value);
+                    state.volume = newVolume;
+                    volumeStressValue.textContent = newVolume.toFixed(1);
+                    const scale = (newVolume - 1) / (10 - 1) * 0.5 + 0.5;
+                    containerWrapper.style.transform = `scale(${scale})`;
+                });
+                temperatureStressSlider.addEventListener('input', () => updateThermalProperties(temperatureStressSlider));
+
+
+                // Main button listeners
+                startBtn.addEventListener('click', () => {
+                    if (simulationRunning) return;
+                    simulationRunning = true;
+                    toggleControls(true);
+                    updateSimulation();
+                });
+
+                stopBtn.addEventListener('click', () => {
+                    simulationRunning = false;
+                    toggleControls(false, true); // Keep initial controls disabled
+                });
+
+                resetBtn.addEventListener('click', initialize);
+
+                // Panel and display toggles
+                togglePanelBtn.addEventListener('click', handlePanelToggle);
+                expandBtn.addEventListener('click', handlePanelToggle);
+
+                toggleSimVisual.addEventListener('change', (e) => {
+                    containerWrapper.style.display = e.target.checked ? 'block' : 'none';
+                });
+                toggleConcGraph.addEventListener('change', (e) => {
+                    concGraphContainer.style.display = e.target.checked ? 'block' : 'none';
+                });
+                toggleRateGraph.addEventListener('change', (e) => {
+                    rateGraphContainer.style.display = e.target.checked ? 'block' : 'none';
+                });
+                toggleDataDisplay.addEventListener('change', (e) => {
+                    realTimeDataContainer.style.display = e.target.checked ? 'block' : 'none';
+                });
+            }
+            
+            function toggleControls(isStarting, isStopping = false) {
+                if (isStarting) {
+                    startBtn.textContent = 'Resume';
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    // Disable initial controls
+                    initialControls.querySelectorAll('input').forEach(el => el.disabled = true);
+                    // Enable stress controls
+                    stressControls.querySelectorAll('input, button').forEach(el => el.disabled = false);
+                    togglePanelBtn.classList.remove('hidden');
+                } else if (isStopping) {
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                } else { // Resetting
+                    startBtn.textContent = 'Start';
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    // Enable initial controls
+                    initialControls.querySelectorAll('input').forEach(el => el.disabled = false);
+                    // Disable stress controls
+                    stressControls.querySelectorAll('input, button').forEach(el => el.disabled = true);
+                }
+            }
+            
+            function setInitialState() {
+                state.coeffA = parseInt(coeffAInput.value, 10) || 1;
+                state.coeffB = parseInt(coeffBInput.value, 10) || 1;
+                state.molesA = parseFloat(molesASlider.value);
+                state.molesB = parseFloat(molesBSlider.value);
+                state.volume = parseFloat(volumeSlider.value);
+                
+                updateEquationDisplay();
+                
+                const scale = (state.volume - 1) / (10 - 1) * 0.5 + 0.5;
+                containerWrapper.style.transform = `scale(${scale})`;
+                drawMolecules();
+                updateThermalProperties(temperatureSlider);
+
+                const concA = state.molesA / state.volume;
+                const concB = state.molesB / state.volume;
+                let Qc = 0;
+                if (concA > 0) {
+                    Qc = Math.pow(concB, state.coeffB) / Math.pow(concA, state.coeffA);
+                } else {
+                    Qc = Infinity;
+                }
+
+                concADisplay.textContent = concA.toFixed(3);
+                concBDisplay.textContent = concB.toFixed(3);
+                qcDisplay.textContent = Qc === Infinity ? '∞' : Qc.toFixed(3);
+            }
+
+            // --- INITIALIZATION ---
+            function initialize() {
+                simulationRunning = false;
+                state.time = 0;
+                currentWindowStart = 0;
+                history = [];
+
+                toggleControls(false);
+                
+                // Reset sliders and inputs to default values
+                coeffAInput.value = 2;
+                coeffBInput.value = 1;
+                molesASlider.value = 5;
+                molesBSlider.value = 0;
+                volumeSlider.value = 5;
+                temperatureSlider.value = 298;
+
+                // Reset stress sliders to match initial
+                volumeStressSlider.value = 5;
+                temperatureStressSlider.value = 298;
+                
+                // Manually update all the value displays
+                molesAValue.textContent = parseFloat(molesASlider.value).toFixed(1);
+                molesBValue.textContent = parseFloat(molesBSlider.value).toFixed(1);
+                volumeValue.textContent = parseFloat(volumeSlider.value).toFixed(1);
+                temperatureValue.textContent = temperatureSlider.value;
+                volumeStressValue.textContent = parseFloat(volumeStressSlider.value).toFixed(1);
+                temperatureStressValue.textContent = temperatureStressSlider.value;
+
+
+                togglePanelBtn.classList.add('hidden');
+                if (leftPanel.classList.contains('hidden')) {
+                    handlePanelToggle();
+                }
+
+                [concentrationChart, rateChart].forEach(chart => {
+                    chart.data.datasets.forEach(dataset => dataset.data = []);
+                    chart.options.scales.x.min = 0;
+                    chart.options.scales.x.max = chartTimeWindow;
+                    chart.update();
+                });
+                
+                statusDisplay.textContent = 'Set initial conditions and press start.';
+                statusDisplay.className = 'text-center text-xl font-semibold p-3 rounded-lg mb-6 transition-colors duration-300 bg-gray-100 text-gray-800';
+                fwdRateDisplay.textContent = '0.0000';
+                revRateDisplay.textContent = '0.0000';
+
+                setInitialState();
+            }
+
+            // --- START ---
+            setupEventListeners();
+            initialize();
+        });
+    </script>
+
+</body>
+</html>

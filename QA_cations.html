@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cation Tests Memory Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .game-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            padding: 20px;
+            width: 90%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .memory-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            perspective: 1000px;
+        }
+        
+        .card {
+            height: 150px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            cursor: pointer;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            padding: 10px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        
+        .card-front {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+            transform: rotateY(180deg);
+            font-size: 14px;
+            overflow-y: auto;
+            flex-direction: column;
+        }
+        
+        .test-paragraph {
+            margin: 5px 0;
+            padding: 8px;
+            width: 90%;
+            border-radius: 5px;
+            background-color: rgba(255,255,255,0.15);
+        }
+        
+        .naoh-test {
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .nh3-test {
+            border-left: 4px solid #2ecc71;
+        }
+
+        .soluble-text {
+            color: #a7ff83; /* Light green */
+            font-weight: bold;
+        }
+
+        .insoluble-text {
+            color: #ff9999; /* Light red */
+            font-weight: bold;
+        }
+        
+        .card-back {
+            background-color: #2c3e50;
+            color: white;
+            font-size: 24px;
+        }
+        
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card.matched {
+            transform: rotateY(180deg);
+            opacity: 0.7;
+            cursor: default;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .rules-summary {
+            background-color: #e6f7ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            width: 90%;
+            max-width: 800px;
+        }
+        
+        .rules-summary h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .rules-summary h3 {
+            color: #2c3e50;
+            margin-top: 20px;
+        }
+        
+        .rules-summary ul {
+            padding-left: 20px;
+        }
+        
+        .rules-summary li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .memory-board {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .card {
+                height: 130px;
+            }
+            
+            .card-front {
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .memory-board {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .card {
+                height: 110px;
+            }
+            
+            .card-back {
+                font-size: 20px;
+            }
+            
+            .card-front {
+                font-size: 10px;
+                padding: 5px;
+            }
+            
+            .test-paragraph {
+                margin: 3px 0;
+                padding: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Cation Tests Memory Game</h1>
+    
+    <div class="game-container">
+        <div class="game-info">
+            <span>Moves: <span id="moves">0</span></span>
+            <span>Matches: <span id="matches">0</span>/8</span>
+        </div>
+        
+        <div class="memory-board" id="memoryBoard">
+            </div>
+        
+        <div class="controls">
+            <button id="restartBtn">Restart Game</button>
+            <button id="showRulesBtn">Show Detailed Cation Tests</button>
+        </div>
+    </div>
+    
+    <div class="rules-summary" id="rulesSummary" style="display: none;">
+        <h2>Detailed Cation Test Results</h2>
+        
+        <h3>Reaction with Sodium Hydroxide (NaOH)</h3>
+        <ul>
+            <li><strong>Al³⁺</strong> - White precipitate, soluble in excess NaOH</li>
+            <li><strong>Zn²⁺</strong> - White precipitate, soluble in excess NaOH</li>
+            <li><strong>Pb²⁺</strong> - White precipitate, soluble in excess NaOH</li>
+            <li><strong>Fe²⁺</strong> - Dirty green precipitate, insoluble in excess NaOH</li>
+            <li><strong>Fe³⁺</strong> - Reddish brown precipitate, insoluble in excess NaOH</li>
+            <li><strong>Mg²⁺</strong> - White precipitate, insoluble in excess NaOH</li>
+            <li><strong>Cu²⁺</strong> - Pale blue precipitate, insoluble in excess NaOH</li>
+            <li><strong>Ag⁺</strong> - Brown precipitate, insoluble in excess NaOH</li>
+        </ul>
+        
+        <h3>Reaction with Ammonia (NH₃)</h3>
+        <ul>
+            <li><strong>Al³⁺</strong> - White precipitate, insoluble in excess NH₃</li>
+            <li><strong>Zn²⁺</strong> - White precipitate, soluble in excess NH₃</li>
+            <li><strong>Pb²⁺</strong> - White precipitate, insoluble in excess NH₃</li>
+            <li><strong>Fe²⁺</strong> - Dirty green precipitate, insoluble in excess NH₃</li>
+            <li><strong>Fe³⁺</strong> - Reddish brown precipitate, insoluble in excess NH₃</li>
+            <li><strong>Mg²⁺</strong> - White precipitate, insoluble in excess NH₃</li>
+            <li><strong>Cu²⁺</strong> - Pale blue precipitate, soluble in excess NH₃ → deep blue solution</li>
+            <li><strong>Ag⁺</strong> - Brown precipitate, soluble in excess NH₃</li>
+        </ul>
+        
+        <h3>Additional Tests</h3>
+        <ul>
+            <li><strong>NH₄⁺</strong> - Warming with NaOH produces NH₃ gas (turns moist red litmus blue)</li>
+            <li><strong>Flame Tests:</strong>
+                <ul>
+                    <li>K⁺ - Lilac flame</li>
+                    <li>Na⁺ - Golden yellow flame</li>
+                    <li>Ca²⁺ - Brick red flame</li>
+                    <li>Cu²⁺ - Bluish green flame</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="celebration" id="celebration"></div>
+    
+    <script>
+        // Game data - cation tests with detailed results
+        const cationTests = [
+            { 
+                cation: "Al³⁺", 
+                test: [
+                    "NaOH: White ppt, soluble in excess",
+                    "NH₃: White ppt, insoluble in excess"
+                ] 
+            },
+            { 
+                cation: "Zn²⁺", 
+                test: [
+                    "NaOH: White ppt, soluble in excess",
+                    "NH₃: White ppt, soluble in excess"
+                ] 
+            },
+            { 
+                cation: "Pb²⁺", 
+                test: [
+                    "NaOH: White ppt, soluble in excess",
+                    "NH₃: White ppt, insoluble in excess"
+                ] 
+            },
+            { 
+                cation: "Fe²⁺", 
+                test: [
+                    "NaOH: Dirty green ppt, insoluble in excess",
+                    "NH₃: Dirty green ppt, insoluble in excess"
+                ] 
+            },
+            { 
+                cation: "Fe³⁺", 
+                test: [
+                    "NaOH: Reddish brown ppt, insoluble in excess",
+                    "NH₃: Reddish brown ppt, insoluble in excess"
+                ] 
+            },
+            { 
+                cation: "Mg²⁺", 
+                test: [
+                    "NaOH: White ppt, insoluble in excess",
+                    "NH₃: White ppt, insoluble in excess"
+                ] 
+            },
+            { 
+                cation: "Cu²⁺", 
+                test: [
+                    "NaOH: Pale blue ppt, insoluble in excess",
+                    "NH₃: Pale blue ppt, soluble in excess → deep blue solution"
+                ] 
+            },
+            { 
+                cation: "Ag⁺", 
+                test: [
+                    "NaOH: Brown ppt, insoluble in excess",
+                    "NH₃: Brown ppt, soluble in excess"
+                ] 
+            },
+            { 
+                cation: "NH₄⁺", 
+                test: ["NaOH: Produces NH₃ gas (turns moist red litmus blue)"] 
+            },
+            { 
+                cation: "K⁺", 
+                test: ["Flame test: Lilac flame"] 
+            },
+            { 
+                cation: "Na⁺", 
+                test: ["Flame test: Golden yellow flame"] 
+            },
+            { 
+                cation: "Ca²⁺", 
+                test: ["Flame test: Brick red flame"] 
+            }
+        ];
+        
+        // Game variables
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let moves = 0;
+        let gameActive = true;
+        
+        // DOM elements
+        const memoryBoard = document.getElementById('memoryBoard');
+        const movesDisplay = document.getElementById('moves');
+        const matchesDisplay = document.getElementById('matches');
+        const restartBtn = document.getElementById('restartBtn');
+        const showRulesBtn = document.getElementById('showRulesBtn');
+        const rulesSummary = document.getElementById('rulesSummary');
+        const celebration = document.getElementById('celebration');
+        
+        // Initialize the game
+        function initGame() {
+            // Reset game state
+            cards = [];
+            flippedCards = [];
+            matchedPairs = 0;
+            moves = 0;
+            gameActive = true;
+            
+            // Update displays
+            movesDisplay.textContent = moves;
+            matchesDisplay.textContent = matchedPairs;
+            
+            // Clear the board
+            memoryBoard.innerHTML = '';
+            
+            // Create pairs of cards
+            const selectedTests = shuffleArray([...cationTests]).slice(0, 8);
+            const gameCards = [];
+            
+            selectedTests.forEach(test => {
+                gameCards.push({ type: 'cation', content: test.cation, matchId: test.cation });
+                gameCards.push({ type: 'test', content: test.test, matchId: test.cation });
+            });
+            
+            // Shuffle the cards
+            cards = shuffleArray(gameCards);
+            
+            // Create card elements
+            cards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card');
+                cardElement.dataset.index = index;
+                
+                const cardFront = document.createElement('div');
+                cardFront.classList.add('card-front');
+                
+                if (card.type === 'test') {
+                    // For test cards, create paragraphs for each test
+                    card.content.forEach((paragraph, i) => {
+                        const paraElement = document.createElement('div');
+                        paraElement.classList.add('test-paragraph');
+                        if (paragraph.includes("NaOH")) {
+                            paraElement.classList.add('naoh-test');
+                        } else if (paragraph.includes("NH₃")) {
+                            paraElement.classList.add('nh3-test');
+                        }
+                        
+                        // Color 'soluble' and 'insoluble' text
+                        let styledParagraph = paragraph.replace(/soluble/g, '<span class="soluble-text">soluble</span>');
+                        styledParagraph = styledParagraph.replace(/insoluble/g, '<span class="insoluble-text">insoluble</span>');
+                        
+                        paraElement.innerHTML = styledParagraph;
+                        cardFront.appendChild(paraElement);
+                    });
+                } else {
+                    // For cation cards, just show the cation
+                    cardFront.textContent = card.content;
+                }
+                
+                const cardBack = document.createElement('div');
+                cardBack.classList.add('card-back');
+                cardBack.textContent = card.type === 'cation' ? card.content : 'Test';
+                
+                cardElement.appendChild(cardFront);
+                cardElement.appendChild(cardBack);
+                
+                cardElement.addEventListener('click', () => flipCard(index));
+                
+                memoryBoard.appendChild(cardElement);
+            });
+        }
+        
+        // Flip a card
+        function flipCard(index) {
+            if (!gameActive || flippedCards.length >= 2 || cards[index].flipped || cards[index].matched) {
+                return;
+            }
+            
+            // Flip the card
+            const cardElement = memoryBoard.children[index];
+            cardElement.classList.add('flipped');
+            cards[index].flipped = true;
+            flippedCards.push(index);
+            
+            // Check for match if two cards are flipped
+            if (flippedCards.length === 2) {
+                moves++;
+                movesDisplay.textContent = moves;
+                
+                const card1 = cards[flippedCards[0]];
+                const card2 = cards[flippedCards[1]];
+                
+                // Check if cards match
+                if (card1.matchId === card2.matchId && card1.type !== card2.type) {
+                    // Match found
+                    card1.matched = true;
+                    card2.matched = true;
+                    matchedPairs++;
+                    matchesDisplay.textContent = matchedPairs;
+                    
+                    // Mark cards as matched
+                    memoryBoard.children[flippedCards[0]].classList.add('matched');
+                    memoryBoard.children[flippedCards[1]].classList.add('matched');
+                    
+                    // Clear flipped cards
+                    flippedCards = [];
+                    
+                    // Check for game completion
+                    if (matchedPairs === 8) {
+                        gameActive = false;
+                        celebrate();
+                    }
+                } else {
+                    // No match - flip back after delay
+                    gameActive = false;
+                    setTimeout(() => {
+                        memoryBoard.children[flippedCards[0]].classList.remove('flipped');
+                        memoryBoard.children[flippedCards[1]].classList.remove('flipped');
+                        cards[flippedCards[0]].flipped = false;
+                        cards[flippedCards[1]].flipped = false;
+                        flippedCards = [];
+                        gameActive = true;
+                    }, 1000);
+                }
+            }
+        }
+        
+        // Celebration effect for game completion
+        function celebrate() {
+            celebration.style.display = 'block';
+            
+            // Create confetti
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'absolute';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = getRandomColor();
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '-10px';
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                
+                celebration.appendChild(confetti);
+                
+                // Animate
+                const animation = confetti.animate([
+                    { top: '-10px', opacity: 1 },
+                    { top: '100vh', opacity: 0 }
+                ], {
+                    duration: Math.random() * 3000 + 2000,
+                    easing: 'cubic-bezier(0.1,0.2,0.7,1)'
+                });
+                
+                animation.onfinish = () => {
+                    confetti.remove();
+                };
+            }
+            
+            setTimeout(() => {
+                celebration.style.display = 'none';
+                celebration.innerHTML = '';
+            }, 3000);
+        }
+        
+        // Helper function to get random color
+        function getRandomColor() {
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+        
+        // Helper function to shuffle array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        // Event listeners
+        restartBtn.addEventListener('click', initGame);
+        showRulesBtn.addEventListener('click', () => {
+            rulesSummary.style.display = rulesSummary.style.display === 'none' ? 'block' : 'none';
+        });
+        
+        // Initialize the game on load
+        window.onload = initGame;
+    </script>
+</body>
+</html>

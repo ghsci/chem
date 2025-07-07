@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anion Identification Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .game-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .test-area {
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            min-height: 300px;
+            position: relative;
+            background-color: #f9f9f9;
+        }
+        .reagent-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .observation-area {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            min-height: 100px;
+        }
+        .answer-area {
+            margin-top: 20px;
+        }
+        .anion-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .anion-option {
+            padding: 8px 12px;
+            background-color: #2ecc71;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .anion-option:hover {
+            background-color: #27ae60;
+        }
+        .feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .next-button {
+            background-color: #9b59b6;
+            margin-top: 15px;
+            display: none;
+        }
+        .next-button:hover {
+            background-color: #8e44ad;
+        }
+        .score-display {
+            text-align: right;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .instructions {
+            background-color: #fffde7;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 5px solid #ffd600;
+            display: block;
+        }
+        .setup-area {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .progress-bar {
+            height: 20px;
+            background-color: #4caf50;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.3s;
+            text-align: center;
+            color: white;
+            line-height: 20px;
+        }
+        .emoji {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        .equation {
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic;
+            margin: 10px 0;
+            padding: 5px;
+            background-color: #f8f9fa;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        .equation sub, .equation sup {
+            font-size: 0.7em; /* Make them smaller */
+            vertical-align: baseline; /* Align to the baseline */
+            position: relative; /* Allow relative positioning */
+            line-height: 0; /* Remove extra line height */
+        }
+
+        .equation sup {
+            top: -0.5em; /* Move superscript up */
+        }
+
+        .equation sub {
+            bottom: -0.25em; /* Move subscript down */
+        }
+        .show-instructions-btn {
+            background-color: #ff9800;
+            margin-bottom: 10px;
+        }
+        .show-instructions-btn:hover {
+            background-color: #e68a00;
+        }
+        .chemical-explanation {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e8f4f8;
+            border-radius: 5px;
+            border-left: 3px solid #5dade2;
+        }
+        .sound-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 24px;
+            transition: transform 0.2s;
+        }
+        .sound-control:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="confettiCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 999;"></canvas>
+    <div class="sound-control" id="soundControl" title="Toggle sound">
+        🔈
+    </div>
+
+    <div class="game-container">
+        <h1>Anion Identification Game</h1>
+        
+        <div class="instructions" id="instructions">
+            <h3>How to Play:</h3>
+            <p>1. Select a reagent to test the unknown solution.</p>
+            <p>2. Observe the reaction results (gas evolution, precipitate formation).</p>
+            <p>3. Use the observations to identify the anion present.</p>
+            <p>4. Select the correct anion from the options.</p>
+            <p>5. Try to get as many correct as possible!</p>
+        </div>
+        
+        <button class="show-instructions-btn" id="show-instructions-btn" style="display: none;">Show Instructions</button>
+        
+        <div class="setup-area" id="setup-area">
+            <h3>Game Setup</h3>
+            <p>Select number of questions:</p>
+            <select id="question-count-select">
+                <option value="5" selected>5</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+            </select>
+            <button id="start-game">Start Game</button>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar">0%</div>
+        </div>
+        
+        <div class="score-display">
+            Score: <span id="score">0</span>/<span id="total-questions">0</span> | 
+            Progress: <span id="current-question">0</span>/<span id="max-questions">0</span>
+        </div>
+        
+        <div class="test-area" id="test-area" style="display: none;">
+            <h3>Test the Unknown Solution</h3>
+            <p>Select a reagent to add to the solution:</p>
+            
+            <div class="reagent-buttons">
+                <button id="hcl">Dilute HCl(aq)</button>
+                <button id="agno3">Acidified AgNO<sub style="font-size: 0.7em; vertical-align: sub; position: relative; bottom: -0.25em;">3</sub>(aq)</button>
+                <button id="ba-no3">Acidified Ba(NO<sub style="font-size: 0.7em; vertical-align: sub; position: relative; bottom: -0.25em;">3</sub>)<sub style="font-size: 0.7em; vertical-align: sub; position: relative; bottom: -0.25em;">2</sub>(aq)</button>
+                <button id="mgso4">MgSO<sub style="font-size: 0.7em; vertical-align: sub; position: relative; bottom: -0.25em;">4</sub>(aq)</button>
+                <button id="reset" style="background-color: #e74c3c;">Reset Test</button>
+            </div>
+            
+            <div class="observation-area">
+                <h4>Observations:</h4>
+                <div id="observations">No tests performed yet.</div>
+            </div>
+            
+            <div class="answer-area">
+                <h4>Based on your observations, identify the anion:</h4>
+                <div class="anion-options" id="anion-options">
+                    <!-- Options will be filled by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            <div class="chemical-explanation" id="chemical-explanation" style="display: none;"></div>
+            <button class="next-button" id="next-button">Next Anion</button>
+        </div>
+    </div>
+
+    <script>
+        // Game data with explanations and equations
+        const anions = [
+            {
+                name: "CO₃²⁻",
+                tests: {
+                    hcl: { 
+                        observation: "Bubbles of gas that turn limewater milky",
+                        equation: "CO₃<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>2-</sup> + 2H<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>+</sup> → CO<sub style='font-size: 0.7em; vertical-align: sub; position: relative; bottom: -0.25em;'>2</sub>↑ + H<sub style='font-size: 0.7em; vertical-align: sub; position: relative; bottom: -0.25em;'>2</sub>O",
+                        explanation: "Carbonate reacts with acid to produce carbon dioxide gas, which turns limewater milky due to formation of calcium carbonate."
+                    },
+                    agno3: { observation: "No precipitate" },
+                    "ba-no3": { observation: "No precipitate" },
+                    mgso4: { 
+                        observation: "White precipitate",
+                        equation: "CO₃<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>2-</sup> + Mg<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>2+</sup> → MgCO₃↓",
+                        explanation: "Magnesium carbonate is insoluble in water, forming a white precipitate."
+                    }
+                }
+            },
+            {
+                name: "HCO₃⁻",
+                tests: {
+                    hcl: { 
+                        observation: "Bubbles of gas that turn limewater milky",
+                        equation: "HCO₃<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>-</sup> + H<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>+</sup> → CO<sub style='font-size: 0.7em; vertical-align: sub; position: relative; bottom: -0.25em;'>2</sub>↑ + H<sub style='font-size: 0.7em; vertical-align: sub; position: relative; bottom: -0.25em;'>2</sub>O",
+                        explanation: "Hydrogen carbonate reacts with acid to produce carbon dioxide gas, which turns limewater milky."
+                    },
+                    agno3: { observation: "No precipitate" },
+                    "ba-no3": { observation: "No precipitate" },
+                    mgso4: { observation: "No precipitate" }
+                }
+            },
+            {
+                name: "SO₃²⁻",
+                tests: {
+                    hcl: { 
+                        observation: "Bubbles of gas with pungent smell that turns acidified K₂Cr₂O₇ from orange to green",
+                        equation: "SO₃<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>2-</sup> + 2H<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>+</sup> → SO<sub style='font-size: 0.7em; vertical-align: sub; position: relative; bottom: -0.25em;'>2</sub>↑ + H<sub style='font-size: 0.7em; vertical-align: sub; position: relative; bottom: -0.25em;'>2</sub>O",
+                        explanation: "Sulfite reacts with acid to produce sulfur dioxide gas, which reduces orange dichromate(VI) to green chromium(III)."
+                    },
+                    agno3: { observation: "No precipitate" },
+                    "ba-no3": { observation: "No precipitate" },
+                    mgso4: { observation: "No precipitate" }
+                }
+            },
+            {
+                name: "OCl⁻",
+                tests: {
+                    hcl: { 
+                        observation: "Yellow-green gas that turns moist blue litmus paper red then white",
+                        equation: "OCl<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>-</sup> + Cl<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>-</sup> + 2H<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>+</sup> → Cl<sub style='font-size: 0.7em; vertical-align: sub; position: relative; bottom: -0.25em;'>2</sub>↑ + H<sub style='font-size: 0.7em; vertical-align: sub; position: relative; bottom: -0.25em;'>2</sub>O",
+                        explanation: "Hypochlorite reacts with chloride ions in acid to produce chlorine gas, which bleaches the litmus paper."
+                    },
+                    agno3: { observation: "No precipitate" },
+                    "ba-no3": { observation: "No precipitate" },
+                    mgso4: { observation: "No precipitate" }
+                }
+            },
+            {
+                name: "Cl⁻",
+                tests: {
+                    hcl: { observation: "No reaction" },
+                    agno3: { 
+                        observation: "White precipitate",
+                        equation: "Ag<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>+</sup> + Cl<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>-</sup> → AgCl↓",
+                        explanation: "Silver chloride forms as a white precipitate that is insoluble in dilute nitric acid."
+                    },
+                    "ba-no3": { observation: "No precipitate" },
+                    mgso4: { observation: "No precipitate" }
+                }
+            },
+            {
+                name: "Br⁻",
+                tests: {
+                    hcl: { observation: "No reaction" },
+                    agno3: { 
+                        observation: "Pale yellow precipitate",
+                        equation: "Ag<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>+</sup> + Br<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>-</sup> → AgBr↓",
+                        explanation: "Silver bromide forms as a pale yellow precipitate that is insoluble in dilute nitric acid."
+                    },
+                    "ba-no3": { observation: "No precipitate" },
+                    mgso4: { observation: "No precipitate" }
+                }
+            },
+            {
+                name: "I⁻",
+                tests: {
+                    hcl: { observation: "No reaction" },
+                    agno3: { 
+                        observation: "Yellow precipitate",
+                        equation: "Ag<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>+</sup> + I<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>-</sup> → AgI↓",
+                        explanation: "Silver iodide forms as a yellow precipitate that is insoluble in dilute nitric acid."
+                    },
+                    "ba-no3": { observation: "No precipitate" },
+                    mgso4: { observation: "No precipitate" }
+                }
+            },
+            {
+                name: "SO₄²⁻",
+                tests: {
+                    hcl: { observation: "No reaction" },
+                    agno3: { observation: "No precipitate" },
+                    "ba-no3": { 
+                        observation: "White precipitate",
+                        equation: "Ba<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>2+</sup> + SO₄<sup style='font-size: 0.7em; vertical-align: super; position: relative; top: -0.5em;'>2-</sup> → BaSO₄↓",
+                        explanation: "Barium sulfate forms as a white precipitate that is insoluble in dilute nitric acid."
+                    },
+                    mgso4: { observation: "No precipitate" }
+                }
+            }
+        ];
+
+        // Game state
+        let currentAnion;
+        let score = 0;
+        let currentQuestion = 0;
+        let totalQuestions = 10;
+        let observations = [];
+        let soundEnabled = true;
+        
+        // DOM elements
+        const observationsElement = document.getElementById('observations');
+        const anionOptionsElement = document.getElementById('anion-options');
+        const feedbackElement = document.getElementById('feedback');
+        const nextButton = document.getElementById('next-button');
+        const scoreElement = document.getElementById('score');
+        const totalQuestionsElement = document.getElementById('total-questions');
+        const currentQuestionElement = document.getElementById('current-question');
+        const maxQuestionsElement = document.getElementById('max-questions');
+        const progressBar = document.getElementById('progress-bar');
+        const testArea = document.getElementById('test-area');
+        const setupArea = document.getElementById('setup-area');
+        const questionCountSelect = document.getElementById('question-count-select');
+        const startGameButton = document.getElementById('start-game');
+        const instructionsElement = document.getElementById('instructions');
+        const showInstructionsBtn = document.getElementById('show-instructions-btn');
+        const chemicalExplanation = document.getElementById('chemical-explanation');
+        const soundControl = document.getElementById('soundControl');
+
+        // Initialize AudioContext once globally
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Audio functions
+        function playCorrectSound() {
+            if (!soundEnabled) return;
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.type = 'triangle';
+            oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(659.25, audioCtx.currentTime + 0.15);
+            oscillator.frequency.linearRampToValueAtTime(783.99, audioCtx.currentTime + 0.30);
+
+            gainNode.gain.setValueAtTime(0.001, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.6, audioCtx.currentTime + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.6);
+        }
+        
+        function playWrongSound() {
+            if (!soundEnabled) return;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.type = "sawtooth";
+            oscillator.frequency.setValueAtTime(220, audioCtx.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(110, audioCtx.currentTime + 0.3);
+
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.4);
+        }
+
+        // Event listeners
+        document.getElementById('hcl').addEventListener('click', () => performTest('hcl'));
+        document.getElementById('agno3').addEventListener('click', () => performTest('agno3'));
+        document.getElementById('ba-no3').addEventListener('click', () => performTest('ba-no3'));
+        document.getElementById('mgso4').addEventListener('click', () => performTest('mgso4'));
+        document.getElementById('reset').addEventListener('click', resetTest);
+        nextButton.addEventListener('click', nextQuestion);
+        startGameButton.addEventListener('click', initGame);
+        showInstructionsBtn.addEventListener('click', toggleInstructions);
+        soundControl.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            soundControl.textContent = soundEnabled ? '🔈' : '🔇';
+            soundControl.title = soundEnabled ? 'Sound on' : 'Sound off';
+        });
+        
+        // Initialize game
+        function initGame() {
+            totalQuestions = parseInt(questionCountSelect.value);
+            score = 0;
+            currentQuestion = 0;
+            
+            // Hide setup and instructions, show test area
+            setupArea.style.display = 'none';
+            instructionsElement.style.display = 'none';
+            showInstructionsBtn.style.display = 'block';
+            testArea.style.display = 'block';
+            
+            updateScore();
+            nextQuestion();
+        }
+        
+        // Toggle instructions visibility
+        function toggleInstructions() {
+            if (instructionsElement.style.display === 'none') {
+                instructionsElement.style.display = 'block';
+                showInstructionsBtn.textContent = 'Hide Instructions';
+            } else {
+                instructionsElement.style.display = 'none';
+                showInstructionsBtn.textContent = 'Show Instructions';
+            }
+        }
+        
+        // Start a new question
+        function nextQuestion() {
+            // Check if game is over
+            if (currentQuestion >= totalQuestions) {
+                endGame();
+                return;
+            }
+            
+            // Reset test area
+            resetTest();
+            
+            // Select random anion
+            currentAnion = anions[Math.floor(Math.random() * anions.length)];
+            
+            // Reset observations
+            observations = [];
+            updateObservations();
+            
+            // Hide feedback, explanation and next button
+            feedbackElement.style.display = 'none';
+            chemicalExplanation.style.display = 'none';
+            nextButton.style.display = 'none';
+            
+            // Update anion options
+            updateAnionOptions();
+            
+            // Increment question count
+            currentQuestion++;
+            updateScore();
+            updateProgress();
+        }
+        
+        // Perform a test
+        function performTest(test) {
+            if (!currentAnion) return;
+            
+            const testResult = currentAnion.tests[test];
+            
+            // Add observation if not already recorded
+            if (!observations.some(obs => obs.test === test)) {
+                observations.push({
+                    test: test,
+                    observation: testResult.observation
+                });
+                
+                updateObservations();
+            }
+        }
+        
+        // Reset the test
+        function resetTest() {
+            observations = [];
+            updateObservations();
+        }
+        
+        // Update observations display
+        function updateObservations() {
+            if (observations.length === 0) {
+                observationsElement.innerHTML = 'No tests performed yet.';
+                return;
+            }
+            
+            let html = '<ul>';
+            observations.forEach(obs => {
+                html += `<li><strong>${getTestName(obs.test)}:</strong> ${obs.observation}</li>`;
+            });
+            html += '</ul>';
+            
+            observationsElement.innerHTML = html;
+        }
+        
+        // Update anion options
+        function updateAnionOptions() {
+            anionOptionsElement.innerHTML = '';
+            
+            // Create shuffled array of all anions
+            const shuffledAnions = [...anions].sort(() => 0.5 - Math.random());
+            
+            // Create buttons for each anion
+            shuffledAnions.forEach(anion => {
+                const button = document.createElement('div');
+                button.className = 'anion-option';
+                button.textContent = anion.name;
+                button.addEventListener('click', () => checkAnswer(anion.name));
+                anionOptionsElement.appendChild(button);
+            });
+        }
+        
+        // Check the selected answer
+        function checkAnswer(selectedAnion) {
+            if (!currentAnion) return;
+            
+            const isCorrect = selectedAnion === currentAnion.name;
+            
+            if (isCorrect) {
+                score++;
+                playCorrectSound();
+                feedbackElement.innerHTML = `<span class="emoji">🎉</span> Correct! The anion was ${currentAnion.name}.`;
+                feedbackElement.className = 'feedback correct';
+            } else {
+                playWrongSound();
+                feedbackElement.innerHTML = `<span class="emoji">❌</span> Incorrect. The correct anion was ${currentAnion.name}.`;
+                feedbackElement.className = 'feedback incorrect';
+            }
+            
+            // Show chemical explanation
+            showChemicalExplanation();
+            
+            feedbackElement.style.display = 'block';
+            nextButton.style.display = 'block';
+            updateScore();
+        }
+        
+        // Show chemical explanation for the current anion
+        function showChemicalExplanation() {
+            if (!currentAnion) return;
+            
+            let html = '<h4>Chemical Explanation:</h4>';
+            let hasPositiveReactions = false;
+            
+            // Show explanations only for positive reactions
+            observations.forEach(obs => {
+                const test = currentAnion.tests[obs.test];
+                if (test.equation && test.explanation) {
+                    html += `
+                        <p><strong>${getTestName(obs.test)} Test:</strong></p>
+                        <div class="equation">${test.equation}</div>
+                        <p>${test.explanation}</p>
+                    `;
+                    hasPositiveReactions = true;
+                }
+            });
+            
+            if (!hasPositiveReactions) {
+                html += '<p>No positive reactions observed in the tests performed.</p>';
+            }
+            
+            chemicalExplanation.innerHTML = html;
+            chemicalExplanation.style.display = 'block';
+        }
+        
+        // Update score display
+        function updateScore() {
+            scoreElement.textContent = score;
+            totalQuestionsElement.textContent = totalQuestions;
+            currentQuestionElement.textContent = currentQuestion;
+            maxQuestionsElement.textContent = totalQuestions;
+        }
+        
+        // Update progress bar
+        function updateProgress() {
+            const progress = (currentQuestion / totalQuestions) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressBar.textContent = `${Math.round(progress)}%`;
+        }
+        
+        // Confetti variables
+        const confettiCanvas = document.getElementById('confettiCanvas');
+        const confettiCtx = confettiCanvas.getContext('2d');
+        let confettiParticles = [];
+
+        // Confetti particle class
+        class ConfettiParticle {
+            constructor(x, y, radius, color, velocity) {
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.color = color;
+                this.velocity = velocity;
+                this.alpha = 1;
+                this.gravity = 0.05;
+                this.friction = 0.99;
+            }
+
+            update() {
+                this.velocity.x *= this.friction;
+                this.velocity.y += this.gravity;
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha -= 0.005; // Fade out
+            }
+
+            draw() {
+                confettiCtx.save();
+                confettiCtx.globalAlpha = this.alpha;
+                confettiCtx.beginPath();
+                confettiCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                confettiCtx.fillStyle = this.color;
+                confettiCtx.fill();
+                confettiCtx.restore();
+            }
+        }
+
+        // Function to fire confetti
+        function fireConfetti() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+            confettiParticles = [];
+
+            const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722', '#795548', '#9E9E9E', '#607D8B'];
+
+            for (let i = 0; i < 150; i++) { // Generate 150 confetti particles
+                const x = Math.random() * confettiCanvas.width;
+                const y = Math.random() * confettiCanvas.height - confettiCanvas.height / 2; // Start higher up
+                const radius = Math.random() * 5 + 2;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const velocity = {
+                    x: (Math.random() - 0.5) * 5,
+                    y: (Math.random() - 0.5) * 5 - 5 // Initial upward velocity
+                };
+                confettiParticles.push(new ConfettiParticle(x, y, radius, color, velocity));
+            }
+
+            animateConfetti();
+        }
+
+        // Confetti animation loop
+        function animateConfetti() {
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            
+            for (let i = confettiParticles.length - 1; i >= 0; i--) {
+                const particle = confettiParticles[i];
+                particle.update();
+                particle.draw();
+
+                if (particle.alpha <= 0 || particle.y > confettiCanvas.height) {
+                    confettiParticles.splice(i, 1);
+                }
+            }
+
+            if (confettiParticles.length > 0) {
+                requestAnimationFrame(animateConfetti);
+            }
+        }
+
+        // End the game
+        function endGame() {
+            const percentage = Math.round((score / totalQuestions) * 100);
+            
+            // Fire confetti if performance is good
+            if (percentage >= 75) {
+                fireConfetti();
+            }
+
+            testArea.innerHTML = `
+                <h2>Game Complete!</h2>
+                <p>Your final score: ${score}/${totalQuestions} (${percentage}%)</p>
+                <p>${getFeedbackMessage(percentage)}</p>
+                <button id="play-again" style="background-color: #2ecc71;">Play Again</button>
+            `;
+            
+            document.getElementById('play-again').addEventListener('click', () => {
+                location.reload();
+            });
+        }
+        
+        // Get feedback message based on score
+        function getFeedbackMessage(percentage) {
+            if (percentage >= 90) return "Excellent work! 🏆 You're an anion identification expert!";
+            if (percentage >= 75) return "Great job! 👍 You've got a solid understanding of anion tests.";
+            if (percentage >= 50) return "Good effort! 😊 Keep practicing to improve your skills.";
+            return "Keep practicing! 💪 Review the tests and try again.";
+        }
+        
+        // Helper function to get test name
+        function getTestName(test) {
+            const names = {
+                'hcl': 'Dilute HCl',
+                'agno3': 'Acidified AgNO₃',
+                'ba-no3': 'Acidified Ba(NO₃)₂',
+                'mgso4': 'MgSO₄'
+            };
+            return names[test] || test;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solubility Rules Quiz</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh; /* Ensure body takes full viewport height */
+            position: relative; /* For canvas positioning */
+            overflow-x: hidden; /* Prevent horizontal scroll from confetti */
+        }
+
+        /* Canvas background */
+        #bgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1; /* Send it to the back */
+            background: linear-gradient(135deg, #e0f2f7 0%, #cce7f0 100%); /* Light gradient background */
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 36px;
+        }
+        .quiz-container {
+            background-color: rgba(255, 255, 255, 0.95); /* Slightly transparent white */
+            border-radius: 20px; /* More rounded corners */
+            padding: 30px; /* Increased padding */
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15); /* Stronger shadow */
+            margin-bottom: 20px;
+            text-align: center;
+            max-width: 700px; /* Slightly reduced max-width for better fit on tablets */
+            width: 90%; /* Responsive width */
+            position: relative; /* Ensure it's above canvas */
+            z-index: 1; /* Bring quiz container to front */
+        }
+        .setup-screen, .question-screen, .results-screen {
+            display: none;
+        }
+        .active-screen {
+            display: block;
+        }
+        .question {
+            margin-bottom: 25px; /* Increased margin */
+            padding: 25px;
+            border: 2px solid #d0d0d0;
+            border-radius: 15px;
+            background-color: #fcfcfc;
+            position: relative;
+        }
+        .options {
+            display: flex;
+            justify-content: center;
+            gap: 20px; /* Increased gap */
+            margin-top: 25px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 12px 25px; /* Increased padding */
+            border: none;
+            border-radius: 10px; /* More rounded buttons */
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease; /* Smoother transition */
+            font-size: 17px; /* Slightly larger font */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Button shadow */
+        }
+        button:hover {
+            transform: translateY(-3px); /* More pronounced lift effect */
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2); /* Stronger shadow on hover */
+        }
+        .soluble-btn {
+            background-color: #28a745; /* Darker green */
+            color: white;
+        }
+        .insoluble-btn {
+            background-color: #dc3545; /* Darker red */
+            color: white;
+        }
+        .explanation {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            text-align: left;
+            background-color: #e6f7ff; /* Lighter blue background */
+            border: 1px solid #a8d9ff;
+        }
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+        .user-choice {
+            box-shadow: 0 0 0 4px rgba(66, 153, 225, 0.7); /* Thicker blue highlight */
+            position: relative;
+        }
+        .user-choice::after {
+            content: "Your choice";
+            position: absolute;
+            top: -12px; /* Adjusted position */
+            right: -12px; /* Adjusted position */
+            background-color: #4299e1;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+        }
+        .rules-summary {
+            background-color: #f0f8ff; /* Lighter background */
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            text-align: left;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); /* Inner shadow */
+        }
+        .rules-summary h3 {
+            margin-top: 0;
+            color: #2980b9;
+            border-bottom: 2px solid #a5d8ff;
+            padding-bottom: 10px;
+            font-size: 22px;
+        }
+        .rules-summary ol {
+            padding-left: 20px;
+            line-height: 1.6;
+        }
+        .rules-summary li {
+            margin-bottom: 8px;
+        }
+        .highlight {
+            background-color: #fffac2; /* Softer yellow */
+            font-weight: bold;
+            padding: 3px 6px;
+            border-radius: 5px;
+            border: 1px solid #ffe08a;
+        }
+        .progress {
+            margin-bottom: 25px;
+            font-weight: bold;
+            font-size: 19px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .current-score {
+            background-color: #5d82b3; /* Darker blue */
+            color: white;
+            padding: 6px 18px;
+            border-radius: 25px;
+            font-size: 17px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .setup-options {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 35px 0;
+            flex-wrap: wrap;
+        }
+        .setup-btn, .restart-btn {
+            background-color: #3498db;
+            color: white;
+            padding: 14px 30px;
+            font-size: 19px;
+            min-width: 140px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .setup-btn:hover, .restart-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        .results {
+            font-size: 22px;
+            margin-bottom: 30px;
+        }
+        .score {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 12px 0;
+        }
+        .next-btn {
+            background-color: #9b59b6;
+            color: white;
+            margin-top: 25px;
+            display: none;
+            padding: 12px 28px;
+            font-size: 18px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .next-btn:hover {
+            background-color: #8e44ad;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        .feedback {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            min-height: 30px;
+        }
+        .positive-feedback {
+            color: #28a745;
+        }
+        .negative-feedback {
+            color: #dc3545;
+        }
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            opacity: 0.8;
+        }
+        .sound-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 24px; /* Larger icon */
+            transition: transform 0.2s;
+        }
+        .sound-control:hover {
+            transform: scale(1.1);
+        }
+
+        /* --- Mobile Responsiveness (Media Queries) --- */
+        @media screen and (max-width: 768px) {
+            h1 {
+                font-size: 30px;
+                margin-bottom: 25px;
+            }
+            .quiz-container {
+                padding: 25px;
+            }
+            .question {
+                padding: 20px;
+            }
+            .question #questionText {
+                font-size: 18px;
+            }
+            .options {
+                flex-direction: column;
+                gap: 15px;
+                margin-top: 20px;
+            }
+            button {
+                width: 80%; /* Adjusted width for mobile buttons */
+                max-width: 300px; /* Max width to prevent overly wide buttons on tablets */
+                margin: 0 auto; /* Center buttons */
+                padding: 10px 20px;
+                font-size: 16px;
+            }
+            .setup-options {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .setup-btn, .restart-btn {
+                width: 80%;
+                max-width: 300px;
+                margin: 0 auto;
+                font-size: 17px;
+                padding: 12px 25px;
+            }
+            .progress {
+                font-size: 17px;
+            }
+            .current-score {
+                padding: 5px 15px;
+                font-size: 15px;
+            }
+            .explanation, .rules-summary {
+                padding: 15px;
+                font-size: 15px;
+            }
+            .explanation strong {
+                font-size: 16px;
+            }
+            .feedback {
+                font-size: 18px;
+            }
+            .results {
+                font-size: 20px;
+            }
+            .score {
+                font-size: 28px;
+            }
+            #finalFeedback {
+                font-size: 22px;
+            }
+            .sound-control {
+                bottom: 15px;
+                right: 15px;
+                padding: 10px;
+                font-size: 20px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 28px;
+                margin-bottom: 15px;
+            }
+            .quiz-container {
+                padding: 15px;
+            }
+            .question {
+                padding: 15px;
+            }
+            .question #questionText {
+                font-size: 17px;
+            }
+            .options button {
+                font-size: 15px;
+                padding: 10px 15px;
+            }
+            .setup-btn, .restart-btn {
+                font-size: 15px;
+                padding: 10px 20px;
+            }
+            .rules-summary {
+                padding: 15px;
+            }
+            .rules-summary h3 {
+                font-size: 20px;
+            }
+            .rules-summary ol {
+                font-size: 14px;
+            }
+            .highlight {
+                font-size: 14px;
+            }
+            .feedback {
+                font-size: 16px;
+            }
+            .results {
+                font-size: 18px;
+            }
+            .score {
+                font-size: 26px;
+            }
+            #finalFeedback {
+                font-size: 20px;
+            }
+            .sound-control {
+                font-size: 18px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bgCanvas"></canvas> <!-- Canvas for background animation -->
+
+    <div class="celebration" id="celebration"></div>
+    
+    <div class="sound-control" id="soundControl" title="Toggle sound">
+        🔈
+    </div>
+    
+    <h1>Solubility Rules Quiz</h1>
+    
+    <div class="quiz-container">
+        <div class="setup-screen active-screen" id="setupScreen">
+            <p style="font-size: 18px;">How many questions would you like to attempt?</p>
+            <div class="setup-options">
+                <button class="setup-btn" onclick="startQuiz(5)">5 Questions</button>
+                <button class="setup-btn" onclick="startQuiz(10)">10 Questions</button>
+                <button class="setup-btn" onclick="startQuiz(15)">15 Questions</button>
+            </div>
+            
+            <div class="rules-summary">
+                <h3>Solubility Rules Summary</h3>
+                <ol>
+                    <li>All <span class="highlight">hydrogencarbonates</span> are soluble</li>
+                    <li>All <span class="highlight">sodium</span> compounds are soluble</li>
+                    <li>All <span class="highlight">potassium</span> compounds are soluble</li>
+                    <li>All <span class="highlight">ammonium</span> compounds are soluble</li>
+                    <li>All <span class="highlight">nitrates</span> are soluble</li>
+                    <li>All <span class="highlight">sulphates</span> are soluble except <span class="highlight">barium sulphate</span>, <span class="highlight">calcium sulphate</span>, <span class="highlight">lead sulphate</span></li>
+                    <li>All <span class="highlight">halides</span> (e.g. Cl, Br, I) are soluble except <span class="highlight">silver halide</span>, <span class="highlight">lead halide</span></li>
+                    <li>All common <span class="highlight">carbonates</span>, <span class="highlight">hydroxides</span>, <span class="highlight">oxides</span> are insoluble except those of Group 1 (<span class="highlight">sodium</span>, <span class="highlight">potassium</span>) and <span class="highlight">ammonium</span></li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="question-screen" id="questionScreen">
+            <div class="progress">
+                <span id="progressText">Question 1 of 10</span>
+                <span class="current-score" id="currentScore">Score: 0</span>
+            </div>
+            <div class="question" id="currentQuestion">
+                <p id="questionText" style="font-size: 20px; font-weight: bold;">Sodium chloride (NaCl)</p>
+                <div class="options">
+                    <button class="soluble-btn" id="solubleBtn" onclick="checkAnswer(true)">Soluble</button>
+                    <button class="insoluble-btn" id="insolubleBtn" onclick="checkAnswer(false)">Insoluble</button>
+                </div>
+                <div class="feedback" id="feedback"></div>
+                <div class="explanation" id="explanation">
+                    <strong>Correct Answer:</strong> Soluble<br>
+                    <strong>Explanation:</strong> All sodium salts are soluble.
+                </div>
+                <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next Question ➔</button>
+            </div>
+        </div>
+        
+        <div class="results-screen" id="resultsScreen">
+            <h2>Quiz Results</h2>
+            <div class="results">
+                <p>You answered <span class="score" id="finalScore">8</span> out of <span id="totalQuestions">10</span> correctly!</p>
+                <p id="performanceComment">Great job! You know your solubility rules well.</p>
+                <div id="finalFeedback" style="font-size: 24px; margin: 20px 0;"></div>
+            </div>
+            <button class="restart-btn" onclick="returnToSetup()">Take Another Quiz</button>
+            
+            <div class="rules-summary">
+                <h3>Solubility Rules Summary</h3>
+                <ol>
+                    <li>All <span class="highlight">hydrogencarbonates</span> are soluble</li>
+                    <li>All <span class="highlight">sodium</span> compounds are soluble</li>
+                    <li>All <span class="highlight">potassium</span> compounds are soluble</li>
+                    <li>All <span class="highlight">ammonium</span> compounds are soluble</li>
+                    <li>All <span class="highlight">nitrates</span> are soluble</li>
+                    <li>All <span class="highlight">sulphates</span> are soluble except <span class="highlight">barium sulphate</span>, <span class="highlight">calcium sulphate</span>, <span class="highlight">lead sulphate</span></li>
+                    <li>All <span class="highlight">halides</span> (e.g. Cl, Br, I) are soluble except <span class="highlight">silver halide</span>, <span class="highlight">lead halide</span></li>
+                    <li>All common <span class="highlight">carbonates</span>, <span class="highlight">hydroxides</span>, <span class="highlight">oxides</span> are insoluble except those of Group 1 (<span class="highlight">sodium</span>, <span class="highlight">potassium</span>) and <span class="highlight">ammonium</span></li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Quiz data with all requested ions, revised for the new rules
+        const compounds = [
+            // Rule 2: All Sodium compounds are soluble
+            { name: "Sodium chloride (NaCl)", soluble: true, explanation: "All sodium compounds are soluble." },
+            { name: "Sodium carbonate (Na₂CO₃)", soluble: true, explanation: "All sodium compounds are soluble." },
+            { name: "Sodium hydroxide (NaOH)", soluble: true, explanation: "All sodium compounds are soluble." },
+            { name: "Sodium sulphate (Na₂SO₄)", soluble: true, explanation: "All sodium compounds are soluble." },
+            { name: "Sodium hydrogencarbonate (NaHCO₃)", soluble: true, explanation: "All sodium compounds are soluble." },
+            
+            // Rule 3: All Potassium compounds are soluble
+            { name: "Potassium nitrate (KNO₃)", soluble: true, explanation: "All potassium compounds are soluble." },
+            { name: "Potassium bromide (KBr)", soluble: true, explanation: "All potassium compounds are soluble." },
+            { name: "Potassium hydroxide (KOH)", soluble: true, explanation: "All potassium compounds are soluble." },
+            { name: "Potassium carbonate (K₂CO₃)", soluble: true, explanation: "All potassium compounds are soluble." },
+            { name: "Potassium hydrogencarbonate (KHCO₃)", soluble: true, explanation: "All potassium compounds are soluble." },
+            
+            // Rule 4: All Ammonium compounds are soluble
+            { name: "Ammonium chloride (NH₄Cl)", soluble: true, explanation: "All ammonium compounds are soluble." },
+            { name: "Ammonium carbonate ((NH₄)₂CO₃)", soluble: true, explanation: "All ammonium compounds are soluble." },
+            { name: "Ammonium sulphate ((NH₄)₂SO₄)", soluble: true, explanation: "All ammonium compounds are soluble." },
+            { name: "Ammonium nitrate (NH₄NO₃)", soluble: true, explanation: "All ammonium compounds are soluble." },
+
+            // Rule 1: All Hydrogencarbonates are soluble
+            { name: "Magnesium hydrogencarbonate (Mg(HCO₃)₂)", soluble: true, explanation: "All hydrogencarbonates are soluble." },
+            
+            // Rule 5: All Nitrates are soluble
+            { name: "Magnesium nitrate (Mg(NO₃)₂)", soluble: true, explanation: "All nitrates are soluble." },
+            { name: "Lead(II) nitrate (Pb(NO₃)₂)", soluble: true, explanation: "All nitrates are soluble." },
+            { name: "Silver nitrate (AgNO₃)", soluble: true, explanation: "All nitrates are soluble." },
+            { name: "Iron(III) nitrate (Fe(NO₃)₃)", soluble: true, explanation: "All nitrates are soluble." },
+            
+            // Rule 7: All Halides (Cl, Br, I) are soluble except silver halide, lead halide
+            { name: "Magnesium chloride (MgCl₂)", soluble: true, explanation: "Most halides are soluble." },
+            { name: "Silver chloride (AgCl)", soluble: false, explanation: "Silver halides are insoluble." },
+            { name: "Lead(II) iodide (PbI₂)", soluble: false, explanation: "Lead halides are insoluble." },
+            { name: "Iron(III) bromide (FeBr₃)", soluble: true, explanation: "Most halides are soluble." },
+            { name: "Calcium chloride (CaCl₂)", soluble: true, explanation: "Most halides are soluble." },
+            { name: "Copper(II) bromide (CuBr₂)", soluble: true, explanation: "Most halides are soluble." },
+            
+            // Rule 6: All Sulphates are soluble except barium sulphate, calcium sulphate, lead sulphate
+            { name: "Magnesium sulphate (MgSO₄)", soluble: true, explanation: "Most sulphates are soluble." },
+            { name: "Barium sulphate (BaSO₄)", soluble: false, explanation: "Barium sulphate is insoluble." },
+            { name: "Calcium sulphate (CaSO₄)", soluble: false, explanation: "Calcium sulphate is insoluble." },
+            { name: "Lead(II) sulphate (PbSO₄)", soluble: false, explanation: "Lead sulphate is insoluble." },
+            { name: "Iron(II) sulphate (FeSO₄)", soluble: true, explanation: "Most sulphates are soluble." },
+            { name: "Copper(II) sulphate (CuSO₄)", soluble: true, explanation: "Most sulphates are soluble." },
+
+            // Rule 8: All common Carbonates, Hydroxides, Oxides are insoluble except those of Group 1 (sodium, potassium) and ammonium
+            // Carbonates
+            { name: "Calcium carbonate (CaCO₃)", soluble: false, explanation: "Most carbonates are insoluble unless with Group 1 or ammonium." },
+            { name: "Zinc carbonate (ZnCO₃)", soluble: false, explanation: "Most carbonates are insoluble unless with Group 1 or ammonium." },
+            { name: "Copper(II) carbonate (CuCO₃)", soluble: false, explanation: "Most carbonates are insoluble unless with Group 1 or ammonium." },
+            { name: "Iron(II) carbonate (FeCO₃)", soluble: false, explanation: "Most carbonates are insoluble unless with Group 1 or ammonium." },
+            
+            // Hydroxides
+            { name: "Aluminium hydroxide (Al(OH)₃)", soluble: false, explanation: "Most hydroxides are insoluble unless with Group 1 or ammonium." },
+            { name: "Iron(III) hydroxide (Fe(OH)₃)", soluble: false, explanation: "Most hydroxides are insoluble unless with Group 1 or ammonium." },
+            { name: "Magnesium hydroxide (Mg(OH)₂)", soluble: false, explanation: "Most hydroxides are insoluble unless with Group 1 or ammonium." },
+            // Removed: Barium hydroxide (Ba(OH)₂)
+            
+            // Oxides
+            { name: "Copper(II) oxide (CuO)", soluble: false, explanation: "Most oxides are insoluble unless with Group 1 or ammonium." },
+            { name: "Zinc oxide (ZnO)", soluble: false, explanation: "Most oxides are insoluble unless with Group 1 or ammonium." },
+            { name: "Iron(III) oxide (Fe₂O₃)", soluble: false, explanation: "Most oxides are insoluble unless with Group 1 or ammonium." }
+        ];
+        
+        // Feedback messages
+        const positiveFeedback = [
+            "🎉 Awesome! You got it right!",
+            "🌟 Brilliant! Perfect answer!",
+            "👏 Excellent work!",
+            "💯 Perfect score material!",
+            "👍 You're nailing this!",
+            "🔥 On fire! Keep it up!"
+        ];
+        
+        const negativeFeedback = [
+            "😕 Uh-oh! Not quite right.",
+            "🤔 Close! Try again next time.",
+            "👎 Oops! That's not correct.",
+            "💡 Almost! Remember the rules.",
+            "📚 Review needed for this one.",
+            "🔍 Pay attention to exceptions."
+        ];
+        
+        const finalFeedback = [
+            { min: 0, max: 40, message: "😢 Keep practicing! Review the rules and try again.", emoji: "📚" },
+            { min: 41, max: 60, message: "🤓 Not bad! With more practice you'll master it.", emoji: "✏️" },
+            { min: 61, max: 80, message: "😊 Good job! You know most of the rules.", emoji: "👍" },
+            { min: 81, max: 99, message: "🎓 Excellent! You're almost perfect!", emoji: "🌟" },
+            { min: 100, max: 100, message: "🏆 Perfect score! You're a solubility expert!", emoji: "💯" }
+        ];
+        
+        // Quiz variables
+        let currentQuestion = 0;
+        let score = 0;
+        let totalQuestions = 10;
+        let quizQuestions = [];
+        let soundEnabled = true;
+        
+        // DOM elements
+        const setupScreen = document.getElementById('setupScreen');
+        const questionScreen = document.getElementById('questionScreen');
+        const resultsScreen = document.getElementById('resultsScreen');
+        const progressElement = document.getElementById('progressText');
+        const currentScoreElement = document.getElementById('currentScore');
+        const questionText = document.getElementById('questionText');
+        const explanation = document.getElementById('explanation');
+        const feedbackElement = document.getElementById('feedback');
+        const finalScore = document.getElementById('finalScore');
+        const totalQuestionsElement = document.getElementById('totalQuestions');
+        const performanceComment = document.getElementById('performanceComment');
+        const finalFeedbackElement = document.getElementById('finalFeedback');
+        const solubleBtn = document.getElementById('solubleBtn');
+        const insolubleBtn = document.getElementById('insolubleBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const celebration = document.getElementById('celebration');
+        const soundControl = document.getElementById('soundControl');
+        
+        // Initialize AudioContext once globally
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Audio elements - using simple tones that work everywhere
+        function playCorrectSound() {
+            if (!soundEnabled) return;
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            // Create a more encouraging, chime-like sound
+            oscillator.type = 'triangle'; // Smoother sound than sine or square
+            oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+            oscillator.frequency.linearRampToValueAtTime(659.25, audioCtx.currentTime + 0.15); // E5
+            oscillator.frequency.linearRampToValueAtTime(783.99, audioCtx.currentTime + 0.30); // G5 (ascending arpeggio)
+
+            gainNode.gain.setValueAtTime(0.001, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.6, audioCtx.currentTime + 0.05); // Quick attack
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6); // Gradual decay
+
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.6);
+        }
+        
+        function playWrongSound() {
+            if (!soundEnabled) return;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.type = "sawtooth"; // Harsher sound
+            oscillator.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+            oscillator.frequency.linearRampToValueAtTime(110, audioCtx.currentTime + 0.3); // A2 (descending)
+
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.4);
+        }
+        
+        function playVictorySound() {
+            if (!soundEnabled) return;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.type = "sine";
+            oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); // A4
+            oscillator.frequency.linearRampToValueAtTime(880, audioCtx.currentTime + 0.4); // A5
+            oscillator.frequency.linearRampToValueAtTime(1760, audioCtx.currentTime + 0.8); // A6 (fast ascent)
+
+            gainNode.gain.setValueAtTime(0.001, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.7, audioCtx.currentTime + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.0);
+
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 1.0);
+        }
+        
+        // Start the quiz with selected number of questions
+        function startQuiz(numQuestions) {
+            totalQuestions = numQuestions;
+            currentQuestion = 0;
+            score = 0;
+            
+            // Select random questions
+            quizQuestions = [...compounds];
+            shuffleArray(quizQuestions);
+            quizQuestions = quizQuestions.slice(0, totalQuestions);
+            
+            // Show first question
+            showQuestion();
+            
+            // Switch screens
+            setupScreen.classList.remove('active-screen');
+            questionScreen.classList.add('active-screen');
+            resultsScreen.classList.remove('active-screen');
+            
+            // Update score display
+            updateScore();
+        }
+        
+        // Show current question
+        function showQuestion() {
+            const question = quizQuestions[currentQuestion];
+            questionText.textContent = question.name;
+            explanation.style.display = 'none';
+            explanation.innerHTML = `<strong>Correct Answer:</strong> ${question.soluble ? "Soluble" : "Insoluble"}<br>
+                                    <strong>Explanation:</strong> ${question.explanation}`;
+            progressElement.textContent = `Question ${currentQuestion + 1} of ${totalQuestions}`;
+            
+            // Reset buttons for new question
+            solubleBtn.disabled = false;
+            insolubleBtn.disabled = false;
+            solubleBtn.classList.remove('correct', 'incorrect', 'user-choice');
+            insolubleBtn.classList.remove('correct', 'incorrect', 'user-choice');
+            nextBtn.style.display = 'none';
+            feedbackElement.textContent = '';
+            feedbackElement.className = 'feedback';
+        }
+        
+        // Check the answer
+        function checkAnswer(userAnswer) {
+            const question = quizQuestions[currentQuestion];
+            const isCorrect = userAnswer === question.soluble;
+            
+            // Mark user's choice
+            const userBtn = userAnswer ? solubleBtn : insolubleBtn;
+            userBtn.classList.add('user-choice');
+            
+            // Show explanation
+            explanation.style.display = 'block';
+            
+            // Disable answer buttons
+            solubleBtn.disabled = true;
+            insolubleBtn.disabled = true;
+            
+            // Highlight correct answer
+            const correctBtn = question.soluble ? solubleBtn : insolubleBtn;
+            correctBtn.classList.add('correct');
+            
+            // Mark incorrect if needed
+            if (!isCorrect) {
+                userBtn.classList.add('incorrect');
+            }
+            
+            // Play sound based on correctness
+            if (isCorrect) {
+                score++;
+                playCorrectSound();
+            } else {
+                playWrongSound();
+            }
+            updateScore(); // Always update score display
+            
+            // Show feedback
+            showFeedback(isCorrect);
+            
+            // Show next button
+            nextBtn.style.display = 'inline-block';
+            
+            // Celebrate if perfect so far
+            if (score === currentQuestion + 1 && score > 0) {
+                celebrate();
+            }
+        }
+        
+        // Show feedback message
+        function showFeedback(isCorrect) {
+            let feedback;
+            let feedbackClass;
+            
+            if (isCorrect) {
+                feedback = positiveFeedback[Math.floor(Math.random() * positiveFeedback.length)];
+                feedbackClass = 'positive-feedback';
+            } else {
+                feedback = negativeFeedback[Math.floor(Math.random() * negativeFeedback.length)];
+                feedbackClass = 'negative-feedback';
+            }
+            
+            feedbackElement.textContent = feedback;
+            feedbackElement.className = 'feedback ' + feedbackClass;
+        }
+        
+        // Update score display
+        function updateScore() {
+            currentScoreElement.textContent = `Score: ${score}/${totalQuestions}`;
+        }
+        
+        // Move to next question
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < totalQuestions) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+        
+        // Show results
+        function showResults() {
+            questionScreen.classList.remove('active-screen');
+            resultsScreen.classList.add('active-screen');
+            
+            finalScore.textContent = score;
+            totalQuestionsElement.textContent = totalQuestions;
+            
+            // Calculate percentage
+            const percentage = Math.round((score / totalQuestions) * 100);
+            
+            // Add performance comment
+            const feedback = finalFeedback.find(f => percentage >= f.min && percentage <= f.max);
+            performanceComment.textContent = feedback.message;
+            finalFeedbackElement.innerHTML = `${feedback.emoji} Your score: ${percentage}% ${feedback.emoji}`;
+            
+            // Big celebration if score is high
+            if (percentage >= 80) {
+                bigCelebration();
+                playVictorySound();
+            }
+        }
+        
+        // Return to setup screen
+        function returnToSetup() {
+            resultsScreen.classList.remove('active-screen');
+            questionScreen.classList.remove('active-screen');
+            setupScreen.classList.add('active-screen');
+        }
+        
+        // Celebration effects
+        function celebrate() {
+            // Small animation for correct answers
+            const buttons = document.querySelectorAll('.options button');
+            buttons.forEach(button => {
+                button.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    button.style.transform = 'scale(1)';
+                }, 300);
+            });
+        }
+        
+        function bigCelebration() {
+            // Create confetti effect
+            celebration.style.display = 'block';
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff'];
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = -10 + 'px';
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                
+                const size = Math.random() * 10 + 5;
+                confetti.style.width = size + 'px';
+                confetti.style.height = size + 'px';
+                
+                celebration.appendChild(confetti);
+                
+                // Animate
+                const animation = confetti.animate([
+                    { top: '-10px', opacity: 1 },
+                    { top: '100vh', opacity: 0 }
+                ], {
+                    duration: Math.random() * 3000 + 2000,
+                    easing: 'cubic-bezier(0.1,0.2,0.7,1)'
+                });
+                
+                animation.onfinish = () => {
+                    confetti.remove();
+                };
+            }
+            
+            setTimeout(() => {
+                celebration.style.display = 'none';
+                celebration.innerHTML = '';
+            }, 3000);
+        }
+        
+        // Toggle sound on/off
+        soundControl.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            soundControl.textContent = soundEnabled ? '🔈' : '🔇';
+            soundControl.title = soundEnabled ? 'Sound on' : 'Sound off';
+        });
+        
+        // Helper function to shuffle array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        /* --- Canvas Background Animation --- */
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const particleCount = 70;
+        const colors = ['#d2edfb', '#a1dafa', '#70c7f8', '#3498db']; // Blueish tones
+
+        // Resize canvas to fill window
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas(); // Initial resize
+
+        // Particle class
+        class Particle {
+            constructor(x, y, radius, color, velocity) {
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.color = color;
+                this.velocity = velocity;
+                this.alpha = 0.5 + Math.random() * 0.5; // Start with some transparency
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                ctx.fillStyle = `rgba(${parseInt(this.color.slice(1, 3), 16)}, ${parseInt(this.color.slice(3, 5), 16)}, ${parseInt(this.color.slice(5, 7), 16)}, ${this.alpha})`;
+                ctx.fill();
+            }
+
+            update() {
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha -= 0.003; // Slowly fade out
+
+                // Reset particle if it goes off-screen or fades out
+                if (this.x - this.radius > canvas.width || this.y - this.radius > canvas.height || this.alpha <= 0) {
+                    this.reset();
+                }
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = -this.radius; // Start from top
+                this.radius = Math.random() * 10 + 5;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.velocity = {
+                    x: (Math.random() - 0.5) * 0.5, // Slight horizontal drift
+                    y: Math.random() * 1 + 0.5 // Downward movement
+                };
+                this.alpha = 0.5 + Math.random() * 0.5;
+            }
+        }
+
+        // Initialize particles
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 10 + 5;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const velocity = {
+                    x: (Math.random() - 0.5) * 0.5,
+                    y: Math.random() * 1 + 0.5
+                };
+                particles.push(new Particle(x, y, radius, color, velocity));
+            }
+        }
+
+        // Animation loop
+        function animateCanvas() {
+            requestAnimationFrame(animateCanvas);
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear only what's necessary
+
+            // Draw a subtle background gradient or fill
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'; /* Very subtle white overlay for trailing effect */
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+        }
+
+        // Start canvas animation on window load to ensure AudioContext is ready for user interaction
+        window.onload = function() {
+            initParticles();
+            animateCanvas();
+        };
+
+    </script>
+</body>
+</html>
