@@ -17,143 +17,224 @@
         /* Use the Inter font family */
         body {
             font-family: 'Inter', sans-serif;
-            overflow: hidden; /* Prevent scrolling on the body */
         }
-        .nav-button {
-            display: block;
+        /* Styles for the fullscreen preview modal */
+        #preview-modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
             width: 100%;
-            text-align: left;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            transition: background-color 0.2s, color 0.2s;
-            color: #4b5563; /* gray-600 */
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
         }
-        .nav-button:hover {
-            background-color: #f3f4f6; /* gray-100 */
-            color: #111827; /* gray-900 */
+        .modal-content {
+            position: relative;
+            background-color: #fefefe;
+            margin: 2% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 95%;
+            height: 95%;
+            border-radius: 0.5rem;
+            display: flex;
+            flex-direction: column;
         }
-        .nav-button.active {
-            background-color: #3b82f6; /* blue-500 */
+        .modal-iframe {
+            flex-grow: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+        .close-button {
+            position: absolute;
+            top: -15px;
+            right: -15px;
             color: white;
-            font-weight: 600;
+            background-color: #ef4444; /* red-500 */
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 28px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
-        .preview-pane {
-            width: 100%;
-            height: 100%;
-        }
-        .preview-pane.hidden {
-            display: none;
-        }
-        .preview-iframe {
-            width: 100%;
-            height: 100%;
-            border: 1px solid #e5e7eb; /* gray-200 */
-            border-radius: 0.5rem; /* rounded-lg */
+        .close-button:hover {
+            background-color: #dc2626; /* red-600 */
         }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <div class="flex h-screen">
-        <!-- Sidebar Navigation -->
-        <nav class="w-72 bg-white p-6 border-r border-gray-200 flex flex-col">
-            <header class="mb-8">
-                <h1 class="text-2xl font-extrabold text-gray-900">GHS Chemistry Hub</h1>
-                <p class="text-sm text-gray-500 mt-1">Select a tool to preview</p>
-            </header>
+    <!-- Main Container -->
+    <div class="min-h-screen flex flex-col items-center p-4 sm:p-6 lg:p-8">
+
+        <!-- Header Section -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 tracking-tight">
+                GHS Chemistry Hub
+            </h1>
+            <p class="mt-4 text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
+                An interactive collection of simulators and quizzes for exploring key chemistry concepts, organized by HKDSE syllabus topics.
+            </p>
+        </header>
+
+        <!-- Main content area with topic sections -->
+        <main class="w-full max-w-7xl space-y-16">
+
+            <!-- Topic: Acids and Bases -->
+            <section>
+                <h2 class="text-3xl font-bold text-gray-800 border-b-2 border-red-500 pb-2 mb-8">
+                    Topic IV: Acids and Bases
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Card: Solubility Rules Quiz -->
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col">
+                        <div class="p-8 flex-grow">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Solubility Rules Quiz</h3>
+                            <p class="text-gray-600 mb-6 h-24">Test your ability to predict whether common ionic compounds will dissolve in water.</p>
+                        </div>
+                        <div class="p-6 bg-gray-50 grid grid-cols-2 gap-4">
+                            <button onclick="openPreview('./solubility.html')" class="w-full text-center bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-300">Fullscreen Preview</button>
+                            <a href="./solubility.html" target="_blank" class="block w-full text-center bg-red-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-red-700 transition-colors duration-300">Open in New Tab</a>
+                        </div>
+                    </div>
+                     <!-- Card: Titration Simulation -->
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col">
+                        <div class="p-8 flex-grow">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Interactive Titration Simulation</h3>
+                            <p class="text-gray-600 mb-6 h-24">A virtual lab to practice acid-base titrations and plot various titration curves.</p>
+                        </div>
+                         <div class="p-6 bg-gray-50 grid grid-cols-2 gap-4">
+                            <button onclick="openPreview('./titration.html')" class="w-full text-center bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-300">Fullscreen Preview</button>
+                            <a href="./titration.html" target="_blank" class="block w-full text-center bg-teal-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-teal-700 transition-colors duration-300">Open in New Tab</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Topic: Fossil Fuels and Carbon Compounds -->
+            <section>
+                <h2 class="text-3xl font-bold text-gray-800 border-b-2 border-orange-500 pb-2 mb-8">
+                    Topic VII: Fossil Fuels and Carbon Compounds
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Card: Organic Nomenclature Practice -->
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col">
+                        <div class="p-8 flex-grow">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Organic Nomenclature Practice</h3>
+                            <p class="text-gray-600 mb-6 h-24">Practice naming organic compounds with this interactive tool. (External Link)</p>
+                        </div>
+                        <div class="p-6 bg-gray-50">
+                            <a href="https://organic-nomenclature-practice.streamlit.app/" target="_blank" rel="noopener noreferrer" class="block w-full text-center bg-orange-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-orange-600 transition-colors duration-300">Open External Site</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
             
-            <div class="flex-grow space-y-6 overflow-y-auto">
-                <!-- Topic: Acids and Bases -->
-                <section>
-                    <h2 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2">Topic IV: Acids and Bases</h2>
-                    <ul class="space-y-1">
-                        <li><button id="nav-solubility" class="nav-button" onclick="showPreview('solubility')">Solubility Rules Quiz</button></li>
-                        <li><button id="nav-titration" class="nav-button" onclick="showPreview('titration')">Titration Simulation</button></li>
-                    </ul>
-                </section>
+            <!-- Topic: Chemical Equilibrium -->
+            <section>
+                <h2 class="text-3xl font-bold text-gray-800 border-b-2 border-blue-500 pb-2 mb-8">
+                    Topic X: Chemical Equilibrium
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Card: Le Chatelier's Principle Simulator -->
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col">
+                        <div class="p-8 flex-grow">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Le Chatelier's Principle Simulator</h3>
+                            <p class="text-gray-600 mb-6 h-24">Observe how changes in concentration, volume, and temperature affect equilibrium.</p>
+                        </div>
+                        <div class="p-6 bg-gray-50 grid grid-cols-2 gap-4">
+                            <button onclick="openPreview('./LCP_simulator.html')" class="w-full text-center bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-300">Fullscreen Preview</button>
+                            <a href="./LCP_simulator.html" target="_blank" class="block w-full text-center bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300">Open in New Tab</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-                <!-- Topic: Fossil Fuels and Carbon Compounds -->
-                <section>
-                    <h2 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2">Topic VII: Fossil Fuels & Carbon Compounds</h2>
-                    <ul class="space-y-1">
-                        <li><a href="https://organic-nomenclature-practice.streamlit.app/" target="_blank" rel="noopener noreferrer" class="nav-button">Organic Nomenclature (External)</a></li>
-                    </ul>
-                </section>
+            <!-- Topic: Analytical Chemistry -->
+            <section>
+                <h2 class="text-3xl font-bold text-gray-800 border-b-2 border-green-500 pb-2 mb-8">
+                    Topic XIV: Analytical Chemistry
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Card: Anion Identification Game -->
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col">
+                        <div class="p-8 flex-grow">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Anion Identification Game</h3>
+                            <p class="text-gray-600 mb-6 h-24">Test your qualitative analysis skills by identifying unknown anions in this lab-style game.</p>
+                        </div>
+                        <div class="p-6 bg-gray-50 grid grid-cols-2 gap-4">
+                            <button onclick="openPreview('./QA_anions.html')" class="w-full text-center bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-300">Fullscreen Preview</button>
+                            <a href="./QA_anions.html" target="_blank" class="block w-full text-center bg-green-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors duration-300">Open in New Tab</a>
+                        </div>
+                    </div>
+                    <!-- Card: Cation Identification Memory Game -->
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col">
+                        <div class="p-8 flex-grow">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Cation Identification Memory Game</h3>
+                            <p class="text-gray-600 mb-6 h-24">Sharpen your memory and learn the results of common cation tests.</p>
+                        </div>
+                        <div class="p-6 bg-gray-50 grid grid-cols-2 gap-4">
+                            <button onclick="openPreview('./QA_cations.html')" class="w-full text-center bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-300">Fullscreen Preview</button>
+                            <a href="./QA_cations.html" target="_blank" class="block w-full text-center bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors duration-300">Open in New Tab</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-                <!-- Topic: Chemical Equilibrium -->
-                <section>
-                    <h2 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2">Topic X: Chemical Equilibrium</h2>
-                    <ul class="space-y-1">
-                        <li><button id="nav-LCP_simulator" class="nav-button" onclick="showPreview('LCP_simulator')">Le Chatelier's Principle</button></li>
-                    </ul>
-                </section>
-
-                <!-- Topic: Analytical Chemistry -->
-                <section>
-                    <h2 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2">Topic XIV: Analytical Chemistry</h2>
-                    <ul class="space-y-1">
-                        <li><button id="nav-QA_anions" class="nav-button" onclick="showPreview('QA_anions')">Anion Identification</button></li>
-                        <li><button id="nav-QA_cations" class="nav-button" onclick="showPreview('QA_cations')">Cation Identification</button></li>
-                    </ul>
-                </section>
-            </div>
-            
-            <footer class="mt-6 text-center text-xs text-gray-400">
-                <p>Developed for GHS Chemistry</p>
-            </footer>
-        </nav>
-
-        <!-- Main Content Area -->
-        <main class="flex-1 p-6 bg-gray-50">
-            <div id="solubility-preview" class="preview-pane">
-                <iframe src="./solubility.html" class="preview-iframe" title="Solubility Rules Quiz Preview"></iframe>
-            </div>
-            <div id="titration-preview" class="preview-pane hidden">
-                <iframe src="./titration.html" class="preview-iframe" title="Interactive Titration Simulation Preview"></iframe>
-            </div>
-            <div id="LCP_simulator-preview" class="preview-pane hidden">
-                <iframe src="./LCP_simulator.html" class="preview-iframe" title="Le Chatelier's Principle Simulator Preview"></iframe>
-            </div>
-            <div id="QA_anions-preview" class="preview-pane hidden">
-                <iframe src="./QA_anions.html" class="preview-iframe" title="Anion Identification Game Preview"></iframe>
-            </div>
-            <div id="QA_cations-preview" class="preview-pane hidden">
-                <iframe src="./QA_cations.html" class="preview-iframe" title="Cation Identification Memory Game Preview"></iframe>
-            </div>
         </main>
+
+        <!-- Footer -->
+        <footer class="text-center mt-16">
+            <p class="text-gray-500">Developed for GHS Chemistry.</p>
+        </footer>
+    </div>
+
+    <!-- Fullscreen Preview Modal -->
+    <div id="preview-modal">
+      <div class="modal-content">
+        <span class="close-button" onclick="closePreview()">&times;</span>
+        <iframe id="modal-iframe" class="modal-iframe" title="Fullscreen Preview"></iframe>
+      </div>
     </div>
 
     <script>
-        const previewPanes = document.querySelectorAll('.preview-pane');
-        const navButtons = document.querySelectorAll('.nav-button');
+        const modal = document.getElementById('preview-modal');
+        const iframe = document.getElementById('modal-iframe');
 
-        function showPreview(targetId) {
-            // Hide all panes
-            previewPanes.forEach(pane => {
-                pane.classList.add('hidden');
-            });
-
-            // Deactivate all buttons
-            navButtons.forEach(button => {
-                button.classList.remove('active');
-            });
-
-            // Show the target pane
-            const targetPane = document.getElementById(targetId + '-preview');
-            if (targetPane) {
-                targetPane.classList.remove('hidden');
-            }
-
-            // Activate the target button
-            const targetButton = document.getElementById('nav-' + targetId);
-            if (targetButton) {
-                targetButton.classList.add('active');
-            }
+        // Function to open the modal with the specified URL
+        function openPreview(url) {
+            iframe.src = url;
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
         }
 
-        // Initialize the view with the first tool active
-        document.addEventListener('DOMContentLoaded', () => {
-            showPreview('solubility');
+        // Function to close the modal
+        function closePreview() {
+            modal.style.display = 'none';
+            iframe.src = ''; // Clear src to stop execution
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close the modal if the user clicks outside the content area
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closePreview();
+            }
+        }
+        
+        // Close the modal if the user presses the Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closePreview();
+            }
         });
     </script>
 
