@@ -18,106 +18,117 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Style for the background gradient animation */
-        .gradient-bg {
-            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-            background-size: 400% 400%;
-            animation: gradient 15s ease infinite;
-        }
-        @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
     <!-- Main Container -->
-    <div class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div class="min-h-screen flex flex-col items-center p-4 sm:p-6 lg:p-8">
 
         <!-- Header Section -->
-        <header class="text-center mb-10">
+        <header class="text-center mb-12">
             <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 tracking-tight">
                 GHS Chemistry Hub
             </h1>
             <p class="mt-4 text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-                An interactive collection of simulators and quizzes for exploring key chemistry concepts.
+                An interactive collection of simulators and quizzes for exploring key chemistry concepts, organized by HKDSE syllabus topics.
             </p>
         </header>
 
-        <!-- Grid for the links -->
-        <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+        <!-- Main content area with topic sections -->
+        <main class="w-full max-w-6xl space-y-16">
 
-            <!-- Card 1: Le Chatelier's Principle Simulator -->
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
-                <div class="p-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-3">Le Chatelier's Principle Simulator</h2>
-                    <p class="text-gray-600 mb-6 h-24">
-                        An interactive simulation to explore chemical equilibrium. Observe how changes in concentration, volume, and temperature affect the position of equilibrium.
-                    </p>
-                    <a href="./LCP_simulator.html" class="inline-block w-full text-center bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300">
-                        Launch Simulator
-                    </a>
+            <!-- Topic: Fossil Fuels and Carbon Compounds -->
+            <section>
+                <h2 class="text-3xl font-bold text-gray-800 border-b-2 border-orange-500 pb-2 mb-8">
+                    Topic VII: Fossil Fuels and Carbon Compounds
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Card 5: Organic Nomenclature Practice -->
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                        <div class="p-8">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Organic Nomenclature Practice</h3>
+                            <p class="text-gray-600 mb-6 h-24">
+                                Practice naming organic compounds with this interactive tool. Test your knowledge of IUPAC nomenclature.
+                            </p>
+                            <a href="https://organic-nomenclature-practice.streamlit.app/" target="_blank" rel="noopener noreferrer" class="inline-block w-full text-center bg-orange-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-orange-600 transition-colors duration-300">
+                                Practice Now
+                            </a>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Card 2: Anion Identification Game -->
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
-                <div class="p-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-3">Anion Identification Game</h2>
-                    <p class="text-gray-600 mb-6 h-24">
-                        Test your qualitative analysis skills! Use various reagents to identify unknown anions in this engaging lab-style game.
-                    </p>
-                    <a href="./QA_anions.html" class="inline-block w-full text-center bg-green-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors duration-300">
-                        Play Game
-                    </a>
+            </section>
+            
+            <!-- Topic: Chemical Equilibrium -->
+            <section>
+                <h2 class="text-3xl font-bold text-gray-800 border-b-2 border-blue-500 pb-2 mb-8">
+                    Topic X: Chemical Equilibrium
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Card 1: Le Chatelier's Principle Simulator -->
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                        <div class="p-8">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Le Chatelier's Principle Simulator</h3>
+                            <p class="text-gray-600 mb-6 h-24">
+                                Observe how changes in concentration, volume, and temperature affect the position of equilibrium in this interactive simulation.
+                            </p>
+                            <a href="./LCP_simulator.html" class="inline-block w-full text-center bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300">
+                                Launch Simulator
+                            </a>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- Card 3: Cation Identification Memory Game -->
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
-                <div class="p-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-3">Cation Identification Memory Game</h2>
-                    <p class="text-gray-600 mb-6 h-24">
-                        Sharpen your memory and learn the results of common cation tests. Match the cations to their correct test observations in this fun memory game.
-                    </p>
-                    <a href="./QA_cations.html" class="inline-block w-full text-center bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors duration-300">
-                        Play Game
-                    </a>
+            <!-- Topic: Analytical Chemistry -->
+            <section>
+                <h2 class="text-3xl font-bold text-gray-800 border-b-2 border-green-500 pb-2 mb-8">
+                    Topic XIV: Analytical Chemistry
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Card 2: Anion Identification Game -->
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                        <div class="p-8">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Anion Identification Game</h3>
+                            <p class="text-gray-600 mb-6 h-24">
+                                Test your qualitative analysis skills! Use various reagents to identify unknown anions in this engaging lab-style game.
+                            </p>
+                            <a href="./QA_anions.html" class="inline-block w-full text-center bg-green-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors duration-300">
+                                Play Game
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Card 3: Cation Identification Memory Game -->
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                        <div class="p-8">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Cation Identification Memory Game</h3>
+                            <p class="text-gray-600 mb-6 h-24">
+                                Sharpen your memory and learn the results of common cation tests. Match cations to their correct observations.
+                            </p>
+                            <a href="./QA_cations.html" class="inline-block w-full text-center bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors duration-300">
+                                Play Game
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Card 4: Solubility Rules Quiz -->
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                        <div class="p-8">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Solubility Rules Quiz</h3>
+                            <p class="text-gray-600 mb-6 h-24">
+                                How well do you know your solubility rules? Test your ability to predict whether common ionic compounds will dissolve in water.
+                            </p>
+                            <a href="./solubility.html" class="inline-block w-full text-center bg-red-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-red-700 transition-colors duration-300">
+                                Take Quiz
+                            </a>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- Card 4: Solubility Rules Quiz -->
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
-                <div class="p-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-3">Solubility Rules Quiz</h2>
-                    <p class="text-gray-600 mb-6 h-24">
-                        How well do you know your solubility rules? Take this quiz to test your ability to predict whether common ionic compounds will dissolve in water.
-                    </p>
-                    <a href="./solubility.html" class="inline-block w-full text-center bg-red-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-red-700 transition-colors duration-300">
-                        Take Quiz
-                    </a>
-                </div>
-            </div>
-
-            <!-- Card 5: Organic Nomenclature Practice -->
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
-                <div class="p-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-3">Organic Nomenclature Practice</h2>
-                    <p class="text-gray-600 mb-6 h-24">
-                        Practice naming organic compounds with this interactive tool. Test your knowledge of IUPAC nomenclature for various functional groups.
-                    </p>
-                    <a href="https://organic-nomenclature-practice.streamlit.app/" target="_blank" rel="noopener noreferrer" class="inline-block w-full text-center bg-orange-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-orange-600 transition-colors duration-300">
-                        Practice Now
-                    </a>
-                </div>
-            </div>
-
-        </div>
+        </main>
 
         <!-- Footer -->
-        <footer class="text-center mt-12">
+        <footer class="text-center mt-16">
             <p class="text-gray-500">Developed for GHS Chemistry.</p>
         </footer>
 
