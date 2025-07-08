@@ -17,143 +17,145 @@
         /* Use the Inter font family */
         body {
             font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Prevent scrolling on the body */
+        }
+        .nav-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s, color 0.2s;
+            color: #4b5563; /* gray-600 */
+        }
+        .nav-button:hover {
+            background-color: #f3f4f6; /* gray-100 */
+            color: #111827; /* gray-900 */
+        }
+        .nav-button.active {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            font-weight: 600;
+        }
+        .preview-pane {
+            width: 100%;
+            height: 100%;
+        }
+        .preview-pane.hidden {
+            display: none;
+        }
+        .preview-iframe {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #e5e7eb; /* gray-200 */
+            border-radius: 0.5rem; /* rounded-lg */
         }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <!-- Main Container -->
-    <div class="min-h-screen flex flex-col items-center p-4 sm:p-6 lg:p-8">
-
-        <!-- Header Section -->
-        <header class="text-center mb-12">
-            <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 tracking-tight">
-                GHS Chemistry Hub
-            </h1>
-            <p class="mt-4 text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-                An interactive collection of simulators and quizzes for exploring key chemistry concepts, organized by HKDSE syllabus topics.
-            </p>
-        </header>
-
-        <!-- Main content area with topic sections -->
-        <main class="w-full max-w-6xl space-y-16">
-
-            <!-- Topic: Acids and Bases -->
-            <section>
-                <h2 class="text-3xl font-bold text-gray-800 border-b-2 border-red-500 pb-2 mb-8">
-                    Topic IV: Acids and Bases
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Card 4: Solubility Rules Quiz -->
-                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
-                        <div class="p-8">
-                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Solubility Rules Quiz</h3>
-                            <p class="text-gray-600 mb-6 h-24">
-                                How well do you know your solubility rules? Test your ability to predict whether common ionic compounds will dissolve in water.
-                            </p>
-                            <a href="./solubility.html" class="inline-block w-full text-center bg-red-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-red-700 transition-colors duration-300">
-                                Take Quiz
-                            </a>
-                        </div>
-                    </div>
-                     <!-- New Card: Titration Simulation -->
-                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
-                        <div class="p-8">
-                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Interactive Titration Simulation</h3>
-                            <p class="text-gray-600 mb-6 h-24">
-                                A virtual lab to practice acid-base titrations. Visualize the process and plot pH, conductivity, and temperature curves.
-                            </p>
-                            <a href="./titration.html" class="inline-block w-full text-center bg-teal-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-teal-700 transition-colors duration-300">
-                                Launch Simulation
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Topic: Fossil Fuels and Carbon Compounds -->
-            <section>
-                <h2 class="text-3xl font-bold text-gray-800 border-b-2 border-orange-500 pb-2 mb-8">
-                    Topic VII: Fossil Fuels and Carbon Compounds
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Card 5: Organic Nomenclature Practice -->
-                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
-                        <div class="p-8">
-                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Organic Nomenclature Practice</h3>
-                            <p class="text-gray-600 mb-6 h-24">
-                                Practice naming organic compounds with this interactive tool. Test your knowledge of IUPAC nomenclature.
-                            </p>
-                            <a href="https://organic-nomenclature-practice.streamlit.app/" target="_blank" rel="noopener noreferrer" class="inline-block w-full text-center bg-orange-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-orange-600 transition-colors duration-300">
-                                Practice Now
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
+    <div class="flex h-screen">
+        <!-- Sidebar Navigation -->
+        <nav class="w-72 bg-white p-6 border-r border-gray-200 flex flex-col">
+            <header class="mb-8">
+                <h1 class="text-2xl font-extrabold text-gray-900">GHS Chemistry Hub</h1>
+                <p class="text-sm text-gray-500 mt-1">Select a tool to preview</p>
+            </header>
             
-            <!-- Topic: Chemical Equilibrium -->
-            <section>
-                <h2 class="text-3xl font-bold text-gray-800 border-b-2 border-blue-500 pb-2 mb-8">
-                    Topic X: Chemical Equilibrium
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Card 1: Le Chatelier's Principle Simulator -->
-                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
-                        <div class="p-8">
-                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Le Chatelier's Principle Simulator</h3>
-                            <p class="text-gray-600 mb-6 h-24">
-                                Observe how changes in concentration, volume, and temperature affect the position of equilibrium in this interactive simulation.
-                            </p>
-                            <a href="./LCP_simulator.html" class="inline-block w-full text-center bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300">
-                                Launch Simulator
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <div class="flex-grow space-y-6 overflow-y-auto">
+                <!-- Topic: Acids and Bases -->
+                <section>
+                    <h2 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2">Topic IV: Acids and Bases</h2>
+                    <ul class="space-y-1">
+                        <li><button id="nav-solubility" class="nav-button" onclick="showPreview('solubility')">Solubility Rules Quiz</button></li>
+                        <li><button id="nav-titration" class="nav-button" onclick="showPreview('titration')">Titration Simulation</button></li>
+                    </ul>
+                </section>
 
-            <!-- Topic: Analytical Chemistry -->
-            <section>
-                <h2 class="text-3xl font-bold text-gray-800 border-b-2 border-green-500 pb-2 mb-8">
-                    Topic XIV: Analytical Chemistry
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Card 2: Anion Identification Game -->
-                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
-                        <div class="p-8">
-                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Anion Identification Game</h3>
-                            <p class="text-gray-600 mb-6 h-24">
-                                Test your qualitative analysis skills! Use various reagents to identify unknown anions in this engaging lab-style game.
-                            </p>
-                            <a href="./QA_anions.html" class="inline-block w-full text-center bg-green-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors duration-300">
-                                Play Game
-                            </a>
-                        </div>
-                    </div>
-                    <!-- Card 3: Cation Identification Memory Game -->
-                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
-                        <div class="p-8">
-                            <h3 class="text-2xl font-bold text-gray-900 mb-3">Cation Identification Memory Game</h3>
-                            <p class="text-gray-600 mb-6 h-24">
-                                Sharpen your memory and learn the results of common cation tests. Match cations to their correct observations.
-                            </p>
-                            <a href="./QA_cations.html" class="inline-block w-full text-center bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors duration-300">
-                                Play Game
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                <!-- Topic: Fossil Fuels and Carbon Compounds -->
+                <section>
+                    <h2 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2">Topic VII: Fossil Fuels & Carbon Compounds</h2>
+                    <ul class="space-y-1">
+                        <li><a href="https://organic-nomenclature-practice.streamlit.app/" target="_blank" rel="noopener noreferrer" class="nav-button">Organic Nomenclature (External)</a></li>
+                    </ul>
+                </section>
 
+                <!-- Topic: Chemical Equilibrium -->
+                <section>
+                    <h2 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2">Topic X: Chemical Equilibrium</h2>
+                    <ul class="space-y-1">
+                        <li><button id="nav-LCP_simulator" class="nav-button" onclick="showPreview('LCP_simulator')">Le Chatelier's Principle</button></li>
+                    </ul>
+                </section>
+
+                <!-- Topic: Analytical Chemistry -->
+                <section>
+                    <h2 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2">Topic XIV: Analytical Chemistry</h2>
+                    <ul class="space-y-1">
+                        <li><button id="nav-QA_anions" class="nav-button" onclick="showPreview('QA_anions')">Anion Identification</button></li>
+                        <li><button id="nav-QA_cations" class="nav-button" onclick="showPreview('QA_cations')">Cation Identification</button></li>
+                    </ul>
+                </section>
+            </div>
+            
+            <footer class="mt-6 text-center text-xs text-gray-400">
+                <p>Developed for GHS Chemistry</p>
+            </footer>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 p-6 bg-gray-50">
+            <div id="solubility-preview" class="preview-pane">
+                <iframe src="./solubility.html" class="preview-iframe" title="Solubility Rules Quiz Preview"></iframe>
+            </div>
+            <div id="titration-preview" class="preview-pane hidden">
+                <iframe src="./titration.html" class="preview-iframe" title="Interactive Titration Simulation Preview"></iframe>
+            </div>
+            <div id="LCP_simulator-preview" class="preview-pane hidden">
+                <iframe src="./LCP_simulator.html" class="preview-iframe" title="Le Chatelier's Principle Simulator Preview"></iframe>
+            </div>
+            <div id="QA_anions-preview" class="preview-pane hidden">
+                <iframe src="./QA_anions.html" class="preview-iframe" title="Anion Identification Game Preview"></iframe>
+            </div>
+            <div id="QA_cations-preview" class="preview-pane hidden">
+                <iframe src="./QA_cations.html" class="preview-iframe" title="Cation Identification Memory Game Preview"></iframe>
+            </div>
         </main>
-
-        <!-- Footer -->
-        <footer class="text-center mt-16">
-            <p class="text-gray-500">Developed for GHS Chemistry.</p>
-        </footer>
-
     </div>
+
+    <script>
+        const previewPanes = document.querySelectorAll('.preview-pane');
+        const navButtons = document.querySelectorAll('.nav-button');
+
+        function showPreview(targetId) {
+            // Hide all panes
+            previewPanes.forEach(pane => {
+                pane.classList.add('hidden');
+            });
+
+            // Deactivate all buttons
+            navButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Show the target pane
+            const targetPane = document.getElementById(targetId + '-preview');
+            if (targetPane) {
+                targetPane.classList.remove('hidden');
+            }
+
+            // Activate the target button
+            const targetButton = document.getElementById('nav-' + targetId);
+            if (targetButton) {
+                targetButton.classList.add('active');
+            }
+        }
+
+        // Initialize the view with the first tool active
+        document.addEventListener('DOMContentLoaded', () => {
+            showPreview('solubility');
+        });
+    </script>
 
 </body>
 </html>
