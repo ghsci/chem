@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Titration Simulation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Global styles and variables */
+        :root {
+            --brand-blue: #3b82f6;
+            --brand-blue-dark: #2563eb;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --bg-light: #f8fafc;
+            --bg-main: #eef2f9;
+            --border-color: #e2e8f0;
+            --disabled-color: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Use fixed height to prevent scrolling */
+            margin: 0;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+        }
+
+        /* Main layout container - reverted to compact layout */
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 20px; /* Reduced gap */
+            padding: 20px; /* Reduced padding */
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px -10px rgba(100, 116, 139, 0.2);
+        }
+
+        #simulation-wrapper, #plot-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px; /* Reduced gap */
+        }
+
+        /* Setup controls panel - reverted to compact layout */
+        .setup-controls {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px 20px; /* Reduced gap */
+            padding: 15px; /* Reduced padding */
+            background-color: var(--bg-light);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            width: 100%;
+        }
+        
+        .setup-controls label {
+            font-weight: 500;
+            text-align: right;
+            align-self: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .setup-controls select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: white;
+            font-size: 14px;
+            width: 100%;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .setup-controls select:focus {
+            outline: none;
+            border-color: var(--brand-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Simulation apparatus container */
+        #simulation {
+            width: 300px;
+            height: 520px;
+            position: relative;
+        }
+
+        /* Plot canvas and controls */
+        #plotCanvas {
+            width: 500px;
+            height: 500px;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+
+        #graph-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Apparatus styling */
+        #stand-base {
+            width: 250px; height: 10px; background-color: #cbd5e1; border-radius: 5px; position: absolute; bottom: 0;
+        }
+        #stand-rod {
+            width: 15px; height: 500px; background-color: #d1d5db; position: absolute; bottom: 0; left: 30px; border-radius: 5px 5px 0 0;
+        }
+        #stand {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 250px; height: 500px; z-index: 1;
+        }
+        #clamp {
+            position: absolute; top: 50px; left: 48px; width: 100px; height: 50px; background-color: #e2e8f0; border: 2px solid #94a3b8; border-radius: 5px; z-index: 4;
+        }
+        #clamp::before, #clamp::after {
+            content: ''; position: absolute; background-color: #e2e8f0; border: 2px solid #94a3b8; width: 20px; height: 60px; top: -7px;
+        }
+        #clamp::before {
+            left: -20px; border-radius: 10px 0 0 10px; border-right: none;
+        }
+        #clamp::after {
+            right: 25px; border-radius: 10px; clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%, 0 80%, 40% 80%, 40% 20%, 0 20%);
+        }
+        #tile {
+            width: 110px; height: 12px; background-color: #fff; border: 2px solid #e2e8f0; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 2;
+        }
+        #burette {
+            width: 22px; height: 380px; position: absolute; left: 50%; transform: translateX(-50%); top: 0; z-index: 3;
+        }
+        #burette-solution-container {
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+            -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 420'%3e%3cpath d='M 3 0 H 19 V 360 L 19 380 L 13 400 L 9 400 L 3 380 Z'/%3e%3c/svg%3e");
+            mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 420'%3e%3cpath d='M 3 0 H 19 V 360 L 19 380 L 13 400 L 9 400 L 3 380 Z'/%3e%3c/svg%3e");
+            -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+        }
+        #burette-solution {
+            width: 100%; height: 100%; background: linear-gradient(to bottom, #7dd3fc, #0ea5e9); position: absolute; bottom: 0; transition: height 0.1s linear;
+        }
+        #stopcock {
+            width: 40px; height: 20px; background: #cbd5e1; border: 2px solid #94a3b8; position: absolute; bottom: 40px; left: -9px; border-radius: 4px;
+        }
+        #stopcock-handle {
+            width: 12px; height: 30px; background: #64748b; border: 2px solid #334155; position: absolute; top: -8px; left: 12px; border-radius: 4px; cursor: pointer; transition: transform 0.3s ease;
+            transform: rotate(90deg); /* Start closed */
+        }
+        #liquid-jet {
+            position: absolute; width: 3px; left: calc(50% - 1.5px); top: 380px; display: none; z-index: 6;
+            background: linear-gradient(to bottom, #a5d8ff 50%, transparent 50%); background-size: 100% 8px; animation: flow 0.15s linear infinite;
+        }
+        @keyframes flow { from { background-position: 0 0; } to { background-position: 0 8px; } }
+        #drop {
+            position: absolute; width: 8px; height: 8px; background-color: #a5d8ff; border-radius: 50%; left: calc(50% - 4px); top: 380px; opacity: 0; z-index: 6;
+        }
+        #drop.animate { animation: fall 0.5s ease-in; }
+        @keyframes fall { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(40px); opacity: 0; } }
+        #flask {
+            width: 90px; height: 100px; position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); z-index: 5;
+        }
+        #flask-content-wrapper {
+            width: 100%; height: 100%; position: relative;
+            -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 90 100'%3e%3cpath d='M 35 0 L 55 0 V 20 L 88 95 A 5 5 0 0 1 83 100 H 7 A 5 5 0 0 1 2 95 L 35 20 Z'/%3e%3c/svg%3e");
+            mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 90 100'%3e%3cpath d='M 35 0 L 55 0 V 20 L 88 95 A 5 5 0 0 1 83 100 H 7 A 5 5 0 0 1 2 95 L 35 20 Z'/%3e%3c/svg%3e");
+            -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+        }
+        #flask-solution {
+            width: 100%; height: 25%; background: #ec584e; position: absolute; bottom: 0; left: 0;
+            transition: height 0.1s linear, background 0.5s ease;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        #flask-outline {
+            width: 100%; height: 100%; position: absolute; bottom: 0; left: 0;
+        }
+        
+        /* Main controls (buttons) */
+        #controls {
+            margin-top: 10px; display: flex; gap: 10px; z-index: 7; width: 100%;
+        }
+
+        button {
+            flex-grow: 1;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--brand-blue);
+            color: white;
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 10px -2px rgba(59, 130, 246, 0.3);
+        }
+        button:hover:not(:disabled) {
+            background-color: var(--brand-blue-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px -2px rgba(59, 130, 246, 0.4);
+        }
+        button:disabled {
+            background-color: var(--disabled-color);
+            color: var(--bg-light);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .graph-btn {
+            background-color: #ffffff;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px -1px rgba(100, 116, 139, 0.1);
+        }
+        .graph-btn:hover:not(:disabled) {
+            background-color: var(--bg-light);
+            border-color: #cbd5e1;
+            color: var(--text-primary);
+        }
+        .graph-btn.active {
+            background-color: var(--brand-blue);
+            color: white;
+            border-color: var(--brand-blue);
+            font-weight: 500;
+            box-shadow: 0 4px 10px -2px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="simulation-wrapper">
+        <div class="setup-controls">
+            <label for="analyte-select">In Flask (Analyte):</label>
+            <select id="analyte-select">
+                <option value="strong-acid">Strong Acid</option>
+                <option value="weak-acid">Weak Acid</option>
+                <option value="strong-base">Strong Base</option>
+                <option value="weak-base">Weak Base</option>
+            </select>
+
+            <label for="titrant-select">In Burette (Titrant):</label>
+            <select id="titrant-select">
+                 <option value="strong-base">Strong Base</option>
+                 <option value="weak-base">Weak Base</option>
+                 <option value="strong-acid">Strong Acid</option>
+                 <option value="weak-acid">Weak Acid</option>
+            </select>
+
+            <label for="indicator-select">Indicator:</label>
+            <select id="indicator-select">
+                <option value="universal">Universal</option>
+                <option value="phenolphthalein">Phenolphthalein</option>
+                <option value="methyl-orange">Methyl Orange</option>
+            </select>
+        </div>
+        <div id="simulation">
+            <div id="stand">
+                <div id="stand-base"></div>
+                <div id="stand-rod"></div>
+            </div>
+            <div id="clamp"></div>
+            <div id="tile"></div>
+            <div id="burette">
+                 <div id="burette-solution-container">
+                    <div id="burette-solution"></div>
+                </div>
+                <svg width="100%" height="100%" viewBox="0 0 22 420" style="position: absolute; top:0; left:0;">
+                    <path d="M 3 0 H 19 V 360 L 19 380 L 13 400 L 9 400 L 3 380 Z" stroke="#475569" stroke-width="2" fill="none"/>
+                </svg>
+                <div id="stopcock">
+                    <div id="stopcock-handle"></div>
+                </div>
+            </div>
+            <div id="liquid-jet"></div>
+            <div id="drop"></div>
+            <div id="flask">
+                 <div id="flask-content-wrapper">
+                    <div id="flask-solution"></div>
+                    <svg id="flask-outline" width="100%" height="100%" viewBox="0 0 90 100">
+                        <path d="M 35 0 L 55 0 V 20 L 88 95 A 5 5 0 0 1 83 100 H 7 A 5 5 0 0 1 2 95 L 35 20 Z" stroke="#475569" stroke-width="2" fill="none" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div id="controls">
+            <button id="addDropButton" onclick="addSingleDrop()">Add Drop</button>
+            <button id="resetButton" onclick="resetTitration()">Reset</button>
+        </div>
+    </div>
+    <div id="plot-wrapper">
+        <canvas id="plotCanvas" width="500" height="500"></canvas>
+        <div id="graph-controls">
+            <button class="graph-btn active" onclick="selectGraph('ph')">pH</button>
+            <button class="graph-btn" onclick="selectGraph('conductivity')">Conductivity</button>
+            <button class="graph-btn" onclick="selectGraph('temperature')">Temperature</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- State and Chemistry Constants ---
+    let titrationInterval;
+    let volume = 0;
+    let phData = { x: [], y: [] };
+    let conductivityData = { x: [], y: [] };
+    let temperatureData = { x: [], y: [] };
+    let hasAutoPaused = false;
+    let isFlowing = false;
+    let currentGraph = 'ph';
+    
+    // Default values, will be updated by selections
+    let analyteType, titrantType, indicatorType;
+
+    const Ka_WA = 1.8e-5; // Acetic Acid
+    const Kb_WB = 1.8e-5; // Ammonia
+    const pKa_WA = -Math.log10(Ka_WA);
+    const pKb_WB = -Math.log10(Kb_WB);
+
+    const ANALYTE_CONCENTRATION = 0.1;
+    const TITRANT_CONCENTRATION = 0.1;
+    const ANALYTE_VOLUME = 0.025;
+    const INITIAL_FLASK_VOLUME = 0.05;
+    const EQUIVALENCE_POINT = 25;
+
+    // --- DOM Elements ---
+    const buretteSolution = document.getElementById('burette-solution');
+    const flaskSolution = document.getElementById('flask-solution');
+    const stopcockHandle = document.getElementById('stopcock-handle');
+    const resetButton = document.getElementById('resetButton');
+    const addDropButton = document.getElementById('addDropButton');
+    const liquidJet = document.getElementById('liquid-jet');
+    const dropElement = document.getElementById('drop');
+    const flask = document.getElementById('flask');
+    const canvas = document.getElementById('plotCanvas');
+    const ctx = canvas.getContext('2d');
+    const graphButtons = document.querySelectorAll('.graph-btn');
+    const analyteSelect = document.getElementById('analyte-select');
+    const titrantSelect = document.getElementById('titrant-select');
+    const indicatorSelect = document.getElementById('indicator-select');
+
+    // --- Indicator Color Logic ---
+    function getIndicatorColor(ph, indicator) {
+        // Handle specific indicators first
+        switch(indicator) {
+            case 'phenolphthalein':
+                return ph < 8.2 ? 'transparent' : (ph < 10 ? '#f9a8d4' : '#ec4899'); // Colorless -> Pink -> Fuchsia
+            case 'methyl-orange':
+                 return ph < 3.1 ? '#f87171' : (ph < 4.4 ? '#fb923c' : '#facc15'); // Red -> Orange -> Yellow
+        }
+
+        // --- NEW: Gradient logic for Universal Indicator ---
+        if (indicator === 'universal') {
+            // Define color stops as [R, G, B] arrays for easy interpolation
+            const colorStops = [
+                { ph: 2, color: [239, 68, 68] },   // Red
+                { ph: 4, color: [249, 115, 22] },  // Orange
+                { ph: 6, color: [234, 179, 8] },   // Yellow
+                { ph: 7, color: [34, 197, 94] },   // Green
+                { ph: 8, color: [20, 184, 166] },  // Teal
+                { ph: 10, color: [59, 130, 246] }, // Blue
+                { ph: 12, color: [139, 92, 246] }  // Violet
+            ];
+
+            // Clamp pH to the range of our color stops to avoid errors
+            const clampedPh = Math.max(colorStops[0].ph, Math.min(ph, colorStops[colorStops.length - 1].ph));
+
+            // Find the two color stops the current pH is between
+            for (let i = 0; i < colorStops.length - 1; i++) {
+                const lowerStop = colorStops[i];
+                const upperStop = colorStops[i + 1];
+
+                if (clampedPh >= lowerStop.ph && clampedPh <= upperStop.ph) {
+                    // Calculate how far the pH is between the two stops (as a fraction from 0 to 1)
+                    const fraction = (clampedPh - lowerStop.ph) / (upperStop.ph - lowerStop.ph);
+
+                    // Interpolate each color component (R, G, B)
+                    const r = Math.round(lowerStop.color[0] + fraction * (upperStop.color[0] - lowerStop.color[0]));
+                    const g = Math.round(lowerStop.color[1] + fraction * (upperStop.color[1] - lowerStop.color[1]));
+                    const b = Math.round(lowerStop.color[2] + fraction * (upperStop.color[2] - lowerStop.color[2]));
+
+                    return `rgb(${r}, ${g}, ${b})`;
+                }
+            }
+             // Fallback for the very last color if something goes wrong
+            return `rgb(${colorStops[colorStops.length - 1].color.join(',')})`;
+        }
+        
+        // Default fallback
+        return 'transparent';
+    }
+
+    // --- Calculation Models ---
+    function calculatePH(vol, analyte, titrant) {
+        const Ca = ANALYTE_CONCENTRATION;
+        const Cb = TITRANT_CONCENTRATION;
+        const Va = ANALYTE_VOLUME;
+        const Vb = vol / 1000;
+        const totalVolume = Va + Vb;
+        const equivalence_fudge = 0.00001;
+
+        // Case 1: Titrating an acid analyte with a base titrant
+        if (analyte.includes('acid') && titrant.includes('base')) {
+            if (analyte === 'strong-acid' && titrant === 'strong-base') {
+                 if (vol < (EQUIVALENCE_POINT - equivalence_fudge)) return -Math.log10((Ca * Va - Cb * Vb) / totalVolume);
+                 if (vol > (EQUIVALENCE_POINT + equivalence_fudge)) return 14 + Math.log10((Cb * Vb - Ca * Va) / totalVolume);
+                 return 7;
+            }
+            if (analyte === 'weak-acid' && titrant === 'strong-base') {
+                 if (vol === 0) return -Math.log10(Math.sqrt(Ka_WA * Ca));
+                 if (vol < (EQUIVALENCE_POINT - equivalence_fudge)) return pKa_WA + Math.log10((Cb * Vb) / (Ca * Va - Cb * Vb));
+                 if (vol > (EQUIVALENCE_POINT + equivalence_fudge)) return 14 + Math.log10((Cb * Vb - Ca * Va) / totalVolume);
+                 const Kb_conj = 1e-14 / Ka_WA;
+                 const conc_A_minus = (Ca * Va) / totalVolume;
+                 const OH = Math.sqrt(Kb_conj * conc_A_minus);
+                 return 14 + Math.log10(OH);
+            }
+             if (analyte === 'strong-acid' && titrant === 'weak-base') {
+                 if (vol < (EQUIVALENCE_POINT - equivalence_fudge)) return -Math.log10((Ca * Va - Cb * Vb) / totalVolume);
+                 if (vol > (EQUIVALENCE_POINT + equivalence_fudge)) {
+                    const pKa_conj = 14 - pKb_WB;
+                    const moles_B_excess = Cb*Vb - Ca*Va;
+                    const moles_BH_plus = Ca*Va;
+                    return pKa_conj + Math.log10(moles_B_excess / moles_BH_plus);
+                 }
+                 const Ka_conj = 1e-14 / Kb_WB;
+                 const conc_BH_plus = (Ca * Va) / totalVolume;
+                 const H = Math.sqrt(Ka_conj * conc_BH_plus);
+                 return -Math.log10(H);
+            }
+            if (analyte === 'weak-acid' && titrant === 'weak-base') {
+                if (vol === 0) return -Math.log10(Math.sqrt(Ka_WA * Ca));
+                if (vol < (EQUIVALENCE_POINT - equivalence_fudge)) return pKa_WA + Math.log10((Cb * Vb) / (Ca * Va - Cb * Vb));
+                if (vol > (EQUIVALENCE_POINT + equivalence_fudge)) {
+                    const pKa_conj = 14 - pKb_WB;
+                    const moles_B_excess = Cb*Vb - Ca*Va;
+                    const moles_BH_plus = Ca*Va;
+                    return pKa_conj + Math.log10(moles_B_excess / moles_BH_plus);
+                }
+                return 7.0; // Since Ka = Kb
+            }
+        }
+         // Case 2: Titrating a base analyte with an acid titrant
+        if (analyte.includes('base') && titrant.includes('acid')) {
+             const Ca_t = TITRANT_CONCENTRATION;
+             const Cb_an = ANALYTE_CONCENTRATION;
+             const Va_t = vol / 1000;
+             const Vb_an = ANALYTE_VOLUME;
+             const totalVolume = Vb_an + Va_t;
+             if (analyte === 'strong-base' && titrant === 'strong-acid') {
+                 if (vol < (EQUIVALENCE_POINT - equivalence_fudge)) return 14 + Math.log10((Cb_an * Vb_an - Ca_t * Va_t) / totalVolume);
+                 if (vol > (EQUIVALENCE_POINT + equivalence_fudge)) return -Math.log10((Ca_t * Va_t - Cb_an * Vb_an) / totalVolume);
+                 return 7;
+             }
+             if (analyte === 'weak-base' && titrant === 'strong-acid') {
+                if (vol === 0) return 14 + Math.log10(Math.sqrt(Kb_WB * Cb_an));
+                if (vol < (EQUIVALENCE_POINT - equivalence_fudge)) {
+                    const pKa_conj = 14 - pKb_WB;
+                    const moles_B = Cb_an * Vb_an - Ca_t * Va_t;
+                    const moles_BH_plus = Ca_t * Va_t;
+                    return pKa_conj + Math.log10(moles_B / moles_BH_plus);
+                }
+                if (vol > (EQUIVALENCE_POINT + equivalence_fudge)) return -Math.log10((Ca_t * Va_t - Cb_an * Vb_an) / totalVolume);
+                const Ka_conj = 1e-14 / Kb_WB;
+                const conc_BH_plus = (Cb_an * Vb_an) / totalVolume;
+                const H = Math.sqrt(Ka_conj * conc_BH_plus);
+                return -Math.log10(H);
+             }
+             if (analyte === 'strong-base' && titrant === 'weak-acid') {
+                 if (vol < (EQUIVALENCE_POINT - equivalence_fudge)) return 14 + Math.log10((Cb_an * Vb_an - Ca_t * Va_t) / totalVolume);
+                 if (vol > (EQUIVALENCE_POINT + equivalence_fudge)) {
+                    const moles_HA_excess = Ca_t * Va_t - Cb_an * Vb_an;
+                    const moles_A_minus = Cb_an * Vb_an;
+                    return pKa_WA + Math.log10(moles_A_minus / moles_HA_excess);
+                 }
+                 const Kb_conj = 1e-14 / Ka_WA;
+                 const conc_A_minus = (Cb_an * Vb_an) / totalVolume;
+                 const OH = Math.sqrt(Kb_conj * conc_A_minus);
+                 return 14 + Math.log10(OH);
+             }
+             if (analyte === 'weak-base' && titrant === 'weak-acid') {
+                if (vol === 0) return 14 + Math.log10(Math.sqrt(Kb_WB * Cb_an));
+                if (vol < (EQUIVALENCE_POINT - equivalence_fudge)) {
+                    const pKa_conj = 14 - pKb_WB;
+                    const moles_B = Cb_an * Vb_an - Ca_t * Va_t;
+                    const moles_BH_plus = Ca_t * Va_t;
+                    return pKa_conj + Math.log10(moles_B / moles_BH_plus);
+                }
+                if (vol > (EQUIVALENCE_POINT + equivalence_fudge)) {
+                    const moles_HA_excess = Ca_t * Va_t - Cb_an * Vb_an;
+                    const moles_A_minus = Cb_an * Vb_an;
+                    return pKa_WA + Math.log10(moles_A_minus / moles_HA_excess);
+                }
+                return 7.0; // Since Ka = Kb
+             }
+        }
+        return 7; 
+    }
+
+    function calculateConductivity(vol) {
+        const lambda_h = 350, lambda_oh = 199, lambda_na = 50, lambda_cl = 76;
+        const vol_L = vol / 1000, total_volume_L = INITIAL_FLASK_VOLUME + vol_L;
+        const initial_moles_h = ANALYTE_VOLUME * ANALYTE_CONCENTRATION, initial_moles_cl = ANALYTE_VOLUME * ANALYTE_CONCENTRATION;
+        const added_moles_oh = vol_L * TITRANT_CONCENTRATION, added_moles_na = vol_L * TITRANT_CONCENTRATION;
+        let rawConductivity = 0;
+        if (vol < EQUIVALENCE_POINT) {
+            const moles_h_remaining = initial_moles_h - added_moles_oh;
+            const conc_h = moles_h_remaining / total_volume_L, conc_na = added_moles_na / total_volume_L, conc_cl = initial_moles_cl / total_volume_L;
+            rawConductivity = conc_h * lambda_h + conc_na * lambda_na + conc_cl * lambda_cl;
+        } else {
+            const moles_oh_excess = added_moles_oh - initial_moles_h;
+            const conc_oh = moles_oh_excess / total_volume_L, conc_na = added_moles_na / total_volume_L, conc_cl = initial_moles_cl / total_volume_L;
+            rawConductivity = conc_oh * lambda_oh + conc_na * lambda_na + conc_cl * lambda_cl;
+        }
+        const raw_max = 21.3, raw_min = 4.2, desired_max = 14.0, desired_min = 2.0;
+        const scaled_val = ((rawConductivity - raw_min) / (raw_max - raw_min)) * (desired_max - desired_min) + desired_min;
+        return scaled_val > 0 ? scaled_val : 0;
+    }
+
+    function calculateTemperature(vol, analyte, titrant) {
+        const startTemp = 25.0;
+        const maxTemp = (analyte.includes('strong') && titrant.includes('strong')) ? 28.0 : 27.2;
+        const endTemp = maxTemp - 0.5; 
+        if (vol <= EQUIVALENCE_POINT) return startTemp + ((maxTemp - startTemp) / EQUIVALENCE_POINT) * vol;
+        return maxTemp + ((endTemp - maxTemp) / (50 - EQUIVALENCE_POINT)) * (vol - EQUIVALENCE_POINT);
+    }
+    
+    // --- Control Functions ---
+    function updateTitrantOptions() {
+        const selectedAnalyte = analyteSelect.value;
+        const isAnalyteAcid = selectedAnalyte.includes('acid');
+        for (const option of titrantSelect.options) {
+            const isTitrantAcid = option.value.includes('acid');
+            option.style.display = (isAnalyteAcid === isTitrantAcid) ? 'none' : 'block';
+        }
+        if (titrantSelect.options[titrantSelect.selectedIndex].style.display === 'none') {
+            for (const option of titrantSelect.options) {
+                if (option.style.display !== 'none') {
+                    titrantSelect.value = option.value;
+                    break;
+                }
+            }
+        }
+    }
+
+    function selectGraph(graphType) {
+        currentGraph = graphType;
+        graphButtons.forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.graph-btn[onclick="selectGraph('${graphType}')"]`).classList.add('active');
+        drawPlot();
+    }
+
+    function toggleFlow() {
+        if (volume >= 50 && !isFlowing) return; 
+        isFlowing = !isFlowing;
+        if (isFlowing) startFlow();
+        else stopFlow();
+    }
+    
+    function startFlow() {
+        isFlowing = true;
+        liquidJet.style.display = 'block';
+        stopcockHandle.style.transform = 'rotate(0deg)'; // Vertical is OPEN
+        resetButton.disabled = true;
+        addDropButton.disabled = true;
+        titrationInterval = setInterval(advanceTitration, 100);
+    }
+
+    function stopFlow() {
+        isFlowing = false;
+        liquidJet.style.display = 'none';
+        stopcockHandle.style.transform = 'rotate(90deg)'; // Horizontal is CLOSED
+        clearInterval(titrationInterval);
+        titrationInterval = null;
+        resetButton.disabled = false;
+        addDropButton.disabled = (volume >= 50);
+    }
+
+    function addSingleDrop() {
+        if (isFlowing) return;
+        const dropTop = flask.offsetTop + (flask.offsetHeight - (flask.offsetHeight * (parseFloat(flaskSolution.style.height) / 100)));
+        dropElement.style.setProperty('--fall-distance', (dropTop - 420) + 'px');
+        dropElement.classList.add('animate');
+        advanceTitration(0.05);
+    }
+    
+    function resetTitration() {
+        if (isFlowing) stopFlow();
+        analyteType = analyteSelect.value;
+        titrantType = titrantSelect.value;
+        indicatorType = indicatorSelect.value;
+        volume = 0;
+        hasAutoPaused = false; 
+        phData = { x: [0], y: [calculatePH(0, analyteType, titrantType)] };
+        conductivityData = { x: [0], y: [calculateConductivity(0)] };
+        temperatureData = { x: [0], y: [calculateTemperature(0, analyteType, titrantType)] };
+        updateApparatus();
+        selectGraph(currentGraph);
+        resetButton.disabled = false;
+        addDropButton.disabled = false;
+        stopcockHandle.style.transform = 'rotate(90deg)';
+    }
+
+    function advanceTitration(increment = 0.25) {
+        if (isFlowing && !hasAutoPaused) {
+            const autoPauseTarget = EQUIVALENCE_POINT - 0.25;
+            if (volume < autoPauseTarget && volume + increment >= autoPauseTarget) {
+                const finalIncrement = autoPauseTarget - volume;
+                volume += finalIncrement > 0 ? finalIncrement : 0;
+                hasAutoPaused = true;
+                updateAllDataArrays();
+                updateApparatus();
+                drawPlot();
+                stopFlow();
+                return;
+            }
+        }
+        volume += increment;
+        if (volume > 50) volume = 50;
+        updateAllDataArrays();
+        updateApparatus();
+        drawPlot();
+        if (volume >= 50) {
+             if (isFlowing) stopFlow();
+             addDropButton.disabled = true;
+        }
+    }
+    
+    function updateAllDataArrays() {
+        phData.x.push(volume);
+        phData.y.push(calculatePH(volume, analyteType, titrantType));
+        conductivityData.x.push(volume);
+        conductivityData.y.push(calculateConductivity(volume));
+        temperatureData.x.push(volume);
+        temperatureData.y.push(calculateTemperature(volume, analyteType, titrantType));
+    }
+
+    function updateApparatus() {
+        buretteSolution.style.height = (100 - (volume / 50 * 100)) + '%';
+        const initialHeight = 25;
+        const addedHeight = (volume / 50) * 25;
+        flaskSolution.style.height = (initialHeight + addedHeight) + '%';
+        const currentPh = calculatePH(volume, analyteType, titrantType);
+        flaskSolution.style.background = getIndicatorColor(currentPh, indicatorType);
+        if (isFlowing) {
+            const flaskTop = flask.offsetTop; 
+            const liquidHeightInFlask = flask.offsetHeight * (parseFloat(flaskSolution.style.height) / 100);
+            const liquidSurfaceTop = flaskTop + (flask.offsetHeight - liquidHeightInFlask);
+            const jetStartTop = 380;
+            liquidJet.style.top = jetStartTop + 'px';
+            liquidJet.style.height = (liquidSurfaceTop - jetStartTop) + 'px';
+        }
+    }
+    
+    // --- Canvas Plotting Functions ---
+    const padding = 60;
+    const plotWidth = canvas.width - 2 * padding;
+    const plotHeight = canvas.height - 2 * padding;
+
+    function drawPlot() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        let data, yAxisLabel, yRange;
+        switch(currentGraph) {
+            case 'conductivity':
+                data = conductivityData; yAxisLabel = 'Conductivity (mS/cm)'; yRange = {min: 0, max: 15}; break;
+            case 'temperature':
+                data = temperatureData; yAxisLabel = 'Temperature (°C)'; yRange = {min: 24, max: 29}; break;
+            default:
+                data = phData; yAxisLabel = 'pH'; yRange = {min: 0, max: 14}; break;
+        }
+        drawAxesAndGrid(yAxisLabel, yRange);
+        drawCurve(data, yRange);
+    }
+
+    function drawAxesAndGrid(yAxisLabel, yRange) {
+        ctx.strokeStyle = '#e2e8f0'; // Lighter grid lines
+        ctx.fillStyle = '#64748b';   // Softer text color
+        ctx.font = "13px 'Inter'";
+        ctx.lineWidth = 1;
+
+        // Y-Axis
+        const yTickCount = 7;
+        for (let i = 0; i <= yTickCount; i++) {
+            const value = yRange.min + (i / yTickCount) * (yRange.max - yRange.min);
+            const y = padding + plotHeight - (i / yTickCount) * plotHeight;
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(padding + plotWidth, y);
+            ctx.stroke();
+            ctx.textAlign = 'right';
+            ctx.fillText(value.toFixed(1), padding - 15, y + 4);
+        }
+
+        // X-Axis
+        for (let i = 0; i <= 50; i += 10) {
+            const x = padding + (i / 50) * plotWidth;
+            ctx.beginPath();
+            ctx.moveTo(x, padding);
+            ctx.lineTo(x, padding + plotHeight);
+            ctx.stroke();
+            ctx.textAlign = 'center';
+            ctx.fillText(i, x, padding + plotHeight + 25);
+        }
+
+        // Main axes lines
+        ctx.strokeStyle = '#94a3b8';
+        ctx.beginPath();
+        ctx.moveTo(padding, padding);
+        ctx.lineTo(padding, padding + plotHeight);
+        ctx.lineTo(padding + plotWidth, padding + plotHeight);
+        ctx.stroke();
+        
+        // Axis titles
+        ctx.fillStyle = '#1e293b';
+        ctx.font = "700 16px 'Inter'";
+        ctx.textAlign = 'center';
+        ctx.fillText('Titration Curve', canvas.width / 2, padding / 2);
+        
+        ctx.font = "500 14px 'Inter'";
+        ctx.fillText('Volume of Titrant Added (mL)', canvas.width / 2, canvas.height - 15);
+        ctx.save();
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText(yAxisLabel, -canvas.height / 2, 20);
+        ctx.restore();
+    }
+
+    function drawCurve(data, yRange) {
+        if (data.x.length < 2) return;
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = 'rgba(59, 130, 246, 0.3)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 2;
+        ctx.beginPath();
+        for (let i = 0; i < data.x.length; i++) {
+            const xVal = data.x[i];
+            const yVal = data.y[i];
+            const canvasX = padding + (xVal / 50) * plotWidth;
+            const canvasY = padding + plotHeight - ((yVal - yRange.min) / (yRange.max - yRange.min)) * plotHeight;
+            if (i === 0) ctx.moveTo(canvasX, canvasY);
+            else ctx.lineTo(canvasX, canvasY);
+        }
+        ctx.stroke();
+        ctx.shadowColor = 'transparent'; // Reset shadow
+    }
+
+    // --- Initial Setup ---
+    window.onload = () => {
+        stopcockHandle.addEventListener('click', toggleFlow);
+        analyteSelect.addEventListener('change', () => { updateTitrantOptions(); resetTitration(); });
+        titrantSelect.addEventListener('change', resetTitration);
+        indicatorSelect.addEventListener('change', resetTitration);
+        dropElement.addEventListener('animationend', () => { dropElement.classList.remove('animate'); });
+        updateTitrantOptions();
+        resetTitration();
+    };
+</script>
+
+</body>
+</html>
